@@ -150,8 +150,6 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
             videoconvert ! videorate ! videoscale !
             {video_caps} ! mux.
 
-            d. ! fakesink
-
             audiotestsrc ! audiorate ! 
             {audio_caps} ! mux.
 
