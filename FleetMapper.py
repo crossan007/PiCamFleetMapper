@@ -42,9 +42,9 @@ import logging
 from lib.connection import Connection
 
 class Util:
-    def get_server_config():
+    def get_server_config(server_address):
         # establish a synchronus connection to server
-        conn = Connection('127.0.0.1')
+        conn = Connection(server_address)
 
         # fetch config from server
         server_config = conn.fetch_config()
@@ -106,10 +106,10 @@ class NetCamClient(Thread):
 
     def start_video_stream(self):
         #pipelineText = "rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 host=172.30.9.156 port=30001"
-        server_caps = Util.get_server_config()
+        server_caps = Util.get_server_config(self.host)
         pipelineText = """
-            "rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! tcpclientsink host=127.0.0.1 port=20000
-        """
+            "rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! tcpclientsink host={host} port=20000
+        """.format(host= self.host)
         coreStreamer = GSTInstance(pipelineText)
         coreStreamer.daemon = False
         coreStreamer.start()
@@ -144,7 +144,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
 
     def setup_core_listener(self):
        
-        server_caps = Util.get_server_config()
+        server_caps = Util.get_server_config('127.0.0.1')
         pipelineText = """
             tcpserversrc host=0.0.0.0 port={video_port} ! decodebin  !
             videoconvert ! videorate ! videoscale !
