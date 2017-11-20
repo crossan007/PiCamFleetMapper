@@ -38,12 +38,17 @@ class NetCamClient(Thread):
 
 
 class NetCamClientHandler(Thread):
-    def __init__(self,ip_address):
+    video_port=0
+    def __init__(self,ip_address,video_port):
         Thread.__init__(self)
+        self.video_port=video_port
         print ("New Client: ", ip_address)
+        self.setup_core_listener()
 
-    def setup_core_listener():
-        print("tes")
+    def setup_core_listener(self):
+        pipeline = "tcpserversrc host=0.0.0.0, port={video_port}".format(video_port = self.video_port)
+        print(pipeline)
+        
 
 class NetCamMaster(asyncore.dispatcher):
 
@@ -57,7 +62,7 @@ class NetCamMaster(asyncore.dispatcher):
     # This is called every time there is something to read
     def handle_read(self):
         data, addr = self.recvfrom(2048)
-        tempCam = NetCamClientHandler(addr)
+        tempCam = NetCamClientHandler(addr,444)
         self.cameras.append(tempCam)
         print(data," ", addr)
 
