@@ -40,45 +40,54 @@ from uuid import getnode
 import logging
 
 class NetCamClient(Thread):
-
-    def __init__(self):
+    host = 0
+    def __init__(self,host):
         Thread.__init__(self)
+        self.host=host
+        self.run()
 
     def get_self_id(self):
         h = iter(hex(getnode())[2:].zfill(12))
         return ":".join(i + next(h) for i in h)
 
     def run(self):
-        broadcastSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        broadcastSocket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        broadcastSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        broadcastSocket.bind(('',54545))
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((self.host, 5455))
         message = "hello %s" % (self.get_self_id())
-        print(message)
-        broadcastSocket.sendto(bytes(message,'UTF-8'), ('<broadcast>', 54545))
+        mesbytes = bytes(message,'UTF-8')
+        len_sent = s.send(mesbytes)
+        response = s.recv(len_sent)
+        print(response)
+        s.close()
 
     def start_video_stream():
         pipelineText = "rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 host=172.30.9.156 port=30001"
         print(pipelineText)
+
 
 class NetCamClientHandler(socketserver.BaseRequestHandler):
     video_port=0
     socket = 0
     remote_host = 0
 
+    def __init__(self, request, client_address, server):
+        self.logger = logging.getLogger('EchoRequestHandler')
+        self.logger.debug('__init__')
+        socketserver.BaseRequestHandler.__init__(self, request,
+                                                 client_address,
+                                                 server)
+        return
+
     def handle(self):
         self.data = self.request.recv(1024).strip()
         print("{} wrote:".format(self.client_address[0]))
         print(self.data)
         # just send back the same data, but upper-cased
-        self.request.sendall(self.data.upper())
+        self.signal_client_start()
 
     def signal_client_start(self):
-        broadcastSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        broadcastSocket.bind(('',444))
-        message = "OK TO START"
-        print ("sending message to ",self.remote_host)
-        broadcastSocket.sendto(bytes(message,'UTF-8'), self.remote_host)
+        message = "OK TO START".encode()
+        self.request.sendall(message)
 
     def setup_core_listener(self):
         pipelineText = "tcpserversrc host=0.0.0.0, port={video_port} ! ".format(video_port = self.video_port)
@@ -128,7 +137,7 @@ class NetCamMasterServer(socketserver.TCPServer):
         self.clients_connected += 1
         print(self.clients_connected)
         return socketserver.TCPServer.process_request(
-            self, request, client_address,
+            self, request, client_address
         )
 
     def server_close(self):
@@ -221,17 +230,17 @@ def main():
         master = NetCamMasterAdvertisementService('172.30.9.154',54545)
         master.daemon = False
         master.start()
-
-
         myServer = NetCamMasterServer(('172.30.9.154',5455),NetCamClientHandler)
         t = Thread(target=myServer.serve_forever)
         t.daemon = False  # don't hang on exit
         t.start()
-       
-        master.stop()
+
+
     if args.camera:
         camera = NetCamMasterServiceDiscoveryService()
         core = camera.wait_for_core()
+        address, port = core
+        camClient = NetCamClient(address)
 
         
 
