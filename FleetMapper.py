@@ -101,15 +101,15 @@ class NetCamClient(Thread):
         len_sent = s.send(mesbytes)
         response = s.recv(len_sent)
         print(response)
-        self.start_video_stream()
+        self.start_video_stream(response)
         s.close()
 
-    def start_video_stream(self):
+    def start_video_stream(self,port):
         #pipelineText = "rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 host=172.30.9.156 port=30001"
         server_caps = Util.get_server_config(self.host)
         pipelineText = """
-            rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! tcpclientsink host={host} port=20000
-        """.format(host= self.host)
+            rpicamsrc bitrate=7000000 ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 host={host} port={port}
+        """.format(host= self.host,port=port)
         coreStreamer = GSTInstance(pipelineText)
         coreStreamer.daemon = False
         coreStreamer.start()
@@ -136,7 +136,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         self.signal_client_start()
 
     def signal_client_start(self):
-        message = "OK TO START. port:{port}".format(port=self.video_port).encode()
+        message = "{port}".format(port=self.video_port).encode()
         print ("Telling {client}: {message}".format(client=self.client_address[0], message=message))
         self.request.sendall(message)
 
@@ -146,9 +146,11 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
        
         server_caps = Util.get_server_config('127.0.0.1')
         pipelineText = """
-            tcpserversrc host=0.0.0.0 port={video_port} ! decodebin  !
+            tcpserversrc host=0.0.0.0 port={video_port} ! matroskademux name=d ! decodebin  !
             videoconvert ! videorate ! videoscale !
             {video_caps} ! mux.
+
+            d. ! fakesink
 
             audiotestsrc ! audiorate ! 
             {audio_caps} ! mux.
