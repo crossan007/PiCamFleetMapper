@@ -101,11 +101,18 @@ class NetCamClient(Thread):
         len_sent = s.send(mesbytes)
         response = s.recv(len_sent)
         print(response)
+        self.start_video_stream()
         s.close()
 
-    def start_video_stream():
-        pipelineText = "rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 host=172.30.9.156 port=30001"
-        print(pipelineText)
+    def start_video_stream(self):
+        #pipelineText = "rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 host=172.30.9.156 port=30001"
+        server_caps = Util.get_server_config()
+        pipelineText = """
+            videotestsrc ! x264enc ! tcpclientsink host=127.0.0.1 port=20000
+        """
+        coreStreamer = GSTInstance(pipelineText)
+        coreStreamer.daemon = False
+        coreStreamer.start()
 
 class NetCamClientHandler(socketserver.BaseRequestHandler):
 
@@ -138,9 +145,8 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
     def setup_core_listener(self):
        
         server_caps = Util.get_server_config()
-        #
         pipelineText = """
-            tcpserversrc host=0.0.0.0, port={video_port} ! decodebin  !
+            tcpserversrc host=0.0.0.0 port={video_port} ! decodebin  !
             videoconvert ! videorate ! videoscale !
             {video_caps} ! mux.
 
@@ -159,8 +165,6 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         coreStreamer = GSTInstance(pipelineText)
         coreStreamer.daemon = False
         coreStreamer.start()
-
-        
 
 class NetCamMasterServer(socketserver.TCPServer):
 
@@ -259,9 +263,7 @@ class NetCamMasterAdvertisementService(Thread):
 
     def run(self):
         while self.should_continue:
-            message = "hello "
-            print(message)
-            self.socket.sendto(bytes(message,'UTF-8'), ('<broadcast>', 54545))
+            self.socket.sendto(bytes("Hello",'UTF-8'), ('<broadcast>', 54545))
             time.sleep(5)
 
     def stop(self):
