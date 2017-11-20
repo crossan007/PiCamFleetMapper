@@ -99,7 +99,7 @@ class NetCamClient(Thread):
         message = "hello %s" % (self.get_self_id())
         mesbytes = bytes(message,'UTF-8')
         len_sent = s.send(mesbytes)
-        response = s.recv(len_sent)
+        response = s.recv(len_sent).decode('UTF-8')
         print(response)
         self.start_video_stream(response)
         s.close()
