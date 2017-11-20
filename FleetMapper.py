@@ -39,6 +39,49 @@ import socketserver
 from uuid import getnode
 import logging
 
+from lib.connection import Connection
+
+class Util:
+    def get_server_config():
+        # establish a synchronus connection to server
+        conn = Connection('127.0.0.1')
+
+        # fetch config from server
+        server_config = conn.fetch_config()
+
+        # Pull out the configs relevant to this client
+        server_conf = {
+            'videocaps': server_config['mix']['videocaps'],
+            'audiocaps': server_config['mix']['audiocaps']
+            }
+        return server_conf
+
+class GSTInstance(Thread):
+    pipeline = 0 
+    def __init__(self, pipelineText, clock=None):
+        Thread.__init__(self)
+        GObject.threads_init()
+        Gst.init([])
+        print("Starting Gstremer local pipeline: {pipeline}".format(pipeline=pipelineText))
+        self.pipeline = Gst.parse_launch(pipelineText)
+        if clock != None:
+            self.pipeline.use_clock(clock)
+
+    def run(self):
+        print("playing...")
+        self.pipeline.set_state(Gst.State.PLAYING)
+
+        mainloop = GObject.MainLoop()
+        try:
+            mainloop.run()
+        except KeyboardInterrupt:
+            print('Terminated via Ctrl-C')
+
+        print('Shutting down...')
+        self.pipeline.set_state(Gst.State.NULL)
+        print('Done.')
+
+
 class NetCamClient(Thread):
     host = 0
     def __init__(self,host):
@@ -64,15 +107,16 @@ class NetCamClient(Thread):
         pipelineText = "rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 host=172.30.9.156 port=30001"
         print(pipelineText)
 
-
 class NetCamClientHandler(socketserver.BaseRequestHandler):
-    video_port=0
-    socket = 0
-    remote_host = 0
+
+    video_port = 0
+    core_port = 0
 
     def __init__(self, request, client_address, server):
         self.logger = logging.getLogger('EchoRequestHandler')
         self.logger.debug('__init__')
+        self.video_port = server.clients_connected -1 + server.base_port # this could be hardcoded to MAC<->Port correlation
+        self.core_port = server.clients_connected -1 + 10000
         socketserver.BaseRequestHandler.__init__(self, request,
                                                  client_address,
                                                  server)
@@ -80,23 +124,48 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        print("{} wrote:".format(self.client_address[0]))
-        print(self.data)
-        # just send back the same data, but upper-cased
+        print("{} connected:".format(self.client_address[0]))
+        self.setup_core_listener()
         self.signal_client_start()
 
     def signal_client_start(self):
-        message = "OK TO START".encode()
+        message = "OK TO START. port:{port}".format(port=self.video_port).encode()
+        print ("Telling {client}: {message}".format(client=self.client_address[0], message=message))
         self.request.sendall(message)
 
+   
+
     def setup_core_listener(self):
-        pipelineText = "tcpserversrc host=0.0.0.0, port={video_port} ! ".format(video_port = self.video_port)
-        print(pipelineText)
-        pipeline = Gst.parse_launch(pipelineText)
+       
+        server_caps = Util.get_server_config()
+        #
+        pipelineText = """
+            tcpserversrc host=0.0.0.0, port={video_port} ! decodebin  !
+            videoconvert ! videorate ! videoscale !
+            {video_caps} ! mux.
+
+            audiotestsrc ! audiorate ! 
+            {audio_caps} ! mux.
+
+            matroskamux name=mux !
+            queue max-size-time=4000000000 !
+            tcpclientsink host=127.0.0.1 port={core_port}
+
+        """.format(video_port = self.video_port, 
+                video_caps = server_caps['videocaps'],
+                audio_caps = server_caps['audiocaps'],
+                core_port = self.core_port
+                )
+        coreStreamer = GSTInstance(pipelineText)
+        coreStreamer.daemon = False
+        coreStreamer.start()
+
+        
 
 class NetCamMasterServer(socketserver.TCPServer):
 
     clients_connected = 0
+    base_port = 20000
 
     def __init__(self, server_address,
                  handler_class,
@@ -196,6 +265,7 @@ class NetCamMasterAdvertisementService(Thread):
             time.sleep(5)
 
     def stop(self):
+        self.socket.close()
         self.should_continue = 0 
 
 def get_args():
@@ -227,10 +297,10 @@ def get_args():
 def main():
     args = get_args()
     if args.master:
-        master = NetCamMasterAdvertisementService('172.30.9.154',54545)
+        master = NetCamMasterAdvertisementService(args.ip_address,54545)
         master.daemon = False
         master.start()
-        myServer = NetCamMasterServer(('172.30.9.154',5455),NetCamClientHandler)
+        myServer = NetCamMasterServer((args.ip_address,5455),NetCamClientHandler)
         t = Thread(target=myServer.serve_forever)
         t.daemon = False  # don't hang on exit
         t.start()
