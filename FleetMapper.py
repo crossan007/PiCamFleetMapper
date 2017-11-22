@@ -317,6 +317,8 @@ def main():
         core = camera.wait_for_core()
         address, port = core
         camClient = NetCamClient(address)
+        while not exitapp:
+            time.sleep(1)
 
         
 
