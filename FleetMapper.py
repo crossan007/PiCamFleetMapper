@@ -94,7 +94,7 @@ class NetCamClient(Thread):
         h = iter(hex(getnode())[2:].zfill(12))
         return ":".join(i + next(h) for i in h)
 
-    def get_core_clock(core_ip, core_clock_port=9998):
+    def get_core_clock(self, core_ip, core_clock_port=9998):
 
         clock = GstNet.NetClientClock.new(
             'voctocore', core_ip, core_clock_port, 0)
