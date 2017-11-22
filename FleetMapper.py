@@ -96,17 +96,17 @@ class NetCamClient(Thread):
 
     def get_core_clock(core_ip, core_clock_port=9998):
 
-    clock = GstNet.NetClientClock.new(
-        'voctocore', core_ip, core_clock_port, 0)
+        clock = GstNet.NetClientClock.new(
+            'voctocore', core_ip, core_clock_port, 0)
 
-    print('obtained NetClientClock from host: {ip}:{port}'.format(
-        ip=core_ip, port=core_clock_port))
+        print('obtained NetClientClock from host: {ip}:{port}'.format(
+            ip=core_ip, port=core_clock_port))
 
-    print('waiting for NetClientClock to sync...')
-    clock.wait_for_sync(Gst.CLOCK_TIME_NONE)
-    print('synced with NetClientClock.')
+        print('waiting for NetClientClock to sync...')
+        clock.wait_for_sync(Gst.CLOCK_TIME_NONE)
+        print('synced with NetClientClock.')
 
-    return clock
+        return clock
 
     def run(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
