@@ -270,7 +270,7 @@ class NetCamMasterAdvertisementService(Thread):
         self.socket.close()
         self.should_continue = 0 
 
-exitapp = False
+
 
 def get_args():
     parser = argparse.ArgumentParser(
@@ -321,10 +321,10 @@ def main():
             time.sleep(1)
 
         
-
+exitapp = False
 if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
         exitapp = True
-        raise
+        os._exit()
