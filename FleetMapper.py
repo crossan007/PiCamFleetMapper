@@ -111,7 +111,7 @@ class NetCamClient(Thread):
             rpicamsrc bitrate=7000000 ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 host={host} port={port}
         """.format(host= self.host,port=port)
         coreStreamer = GSTInstance(pipelineText)
-        coreStreamer.daemon = False
+        coreStreamer.daemon = True
         coreStreamer.start()
 
 class NetCamClientHandler(socketserver.BaseRequestHandler):
@@ -163,7 +163,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
                 core_port = self.core_port
                 )
         coreStreamer = GSTInstance(pipelineText)
-        coreStreamer.daemon = False
+        coreStreamer.daemon = True
         coreStreamer.start()
 
 class NetCamMasterServer(socketserver.TCPServer):
@@ -270,6 +270,8 @@ class NetCamMasterAdvertisementService(Thread):
         self.socket.close()
         self.should_continue = 0 
 
+exitapp = False
+
 def get_args():
     parser = argparse.ArgumentParser(
             description='''IP connected camera fleet manager for VoctoCore
@@ -300,12 +302,14 @@ def main():
     args = get_args()
     if args.master:
         master = NetCamMasterAdvertisementService(args.ip_address,54545)
-        master.daemon = False
+        master.daemon = True
         master.start()
         myServer = NetCamMasterServer((args.ip_address,5455),NetCamClientHandler)
         t = Thread(target=myServer.serve_forever)
-        t.daemon = False  # don't hang on exit
+        t.daemon = True  # don't hang on exit
         t.start()
+        while not exitapp:
+            time.sleep(1)
 
 
     if args.camera:
@@ -317,4 +321,8 @@ def main():
         
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        exitapp = True
+        raise
