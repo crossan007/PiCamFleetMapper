@@ -108,7 +108,7 @@ class NetCamClient(Thread):
         #pipelineText = "rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 host=172.30.9.156 port=30001"
         server_caps = Util.get_server_config(self.host)
         pipelineText = """
-            rpicamsrc bitrate=7000000 ! h264parse ! matroskamux ! queue ! tcpclientsink host={host} port={port}
+            rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 host={host} port={port}
         """.format(host= self.host,port=port)
         coreStreamer = GSTInstance(pipelineText)
         coreStreamer.daemon = True
