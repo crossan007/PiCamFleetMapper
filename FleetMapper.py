@@ -88,7 +88,7 @@ class NetCamClient(Thread):
     host = 0
     port = 0
     camType = ''
-    def __init__(self,host,camType:
+    def __init__(self,host,camType):
         Thread.__init__(self)
         self.host=host
         self.camType = camType
@@ -131,7 +131,7 @@ class NetCamClient(Thread):
             srcText = 'rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse !'
         else if self.camType == 'v4l2src':
              srcText = 'v4l2src do-timestamp=true ! jpegparse !'
-             
+
         return pipelineText = """
             {srcText}  matroskamux ! queue ! tcpclientsink render-delay=800 ts-offset=-800 host={host} port={port}
         """.format(srcText=srcText, host=self.host, port=self.port)
