@@ -320,8 +320,8 @@ def get_args():
         help="Use this when running on the core server to receive video streams")
 
     parser.add_argument(
-        '-c', '--camera', action='store_true',
-        choices=['rpicamsrc','v4l2src']
+        '-c', '--camera', action='store',
+        choices=['rpicamsrc','v4l2src'],
         help="Use this when capturing from a device.  Automatically finds core and streams on live")
 
     parser.add_argument(
