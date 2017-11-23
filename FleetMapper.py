@@ -133,7 +133,7 @@ class NetCamClient(Thread):
              srcText = 'v4l2src do-timestamp=true ! jpegparse !'
 
         pipelineText = """
-            {srcText}  matroskamux ! queue ! tcpclientsink render-delay=800 ts-offset=-800 host={host} port={port}
+            {srcText}  matroskamux ! queue ! tcpclientsink host={host} port={port}
         """.format(srcText=srcText, host=self.host, port=self.port)
 
         return pipelineText
@@ -368,4 +368,5 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
+        print("setting exitapp=true")
         exitapp = True
