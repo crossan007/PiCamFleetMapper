@@ -132,9 +132,11 @@ class NetCamClient(Thread):
         elif self.camType == 'v4l2src':
              srcText = 'v4l2src do-timestamp=true ! jpegparse !'
 
-        return pipelineText = """
+        pipelineText = """
             {srcText}  matroskamux ! queue ! tcpclientsink render-delay=800 ts-offset=-800 host={host} port={port}
         """.format(srcText=srcText, host=self.host, port=self.port)
+
+        return pipelineText
 
     def start_video_stream(self):
         #pipelineText = "rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 host=172.30.9.156 port=30001"
