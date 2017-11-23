@@ -132,7 +132,7 @@ class NetCamClient(Thread):
             srcText = 'rpicamsrc bitrate=7000000 ! h264parse !'
         elif self.camType == 'v4l2src':
              srcText = 'v4l2src do-timestamp=true ! jpegparse !'
-
+        srcText = 'videotestsrc is-live=true ! clockoverlay ! jpegenc ! '
         pipelineText = """
             {srcText}  matroskamux ! queue ! tcpclientsink host={host} port={port}
         """.format(srcText=srcText, host=self.host, port=self.port)
@@ -160,7 +160,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         self.logger = logging.getLogger('EchoRequestHandler')
         self.logger.debug('__init__')
         self.video_port = server.clients_connected -1 + server.base_port # this could be hardcoded to MAC<->Port correlation
-        self.core_port = server.clients_connected -1 + 10000
+        self.core_port = server.clients_connected -1 + server.core_start_port
         socketserver.BaseRequestHandler.__init__(self, request,
                                                  client_address,
                                                  server)
@@ -202,6 +202,7 @@ class NetCamMasterServer(socketserver.TCPServer):
 
     clients_connected = 0
     base_port = 20000
+    core_start_port = 10004
 
     def __init__(self, server_address,
                  handler_class,
