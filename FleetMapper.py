@@ -86,9 +86,12 @@ class GSTInstance(Thread):
 
 class NetCamClient(Thread):
     host = 0
-    def __init__(self,host):
+    port = 0
+    camType = ''
+    def __init__(self,host,camType:
         Thread.__init__(self)
         self.host=host
+        self.camType = camType
         self.run()
 
     def get_self_id(self):
@@ -117,17 +120,27 @@ class NetCamClient(Thread):
         len_sent = s.send(mesbytes)
         response = s.recv(len_sent).decode('UTF-8')
         print(response)
-        self.start_video_stream(response)
+        self.port = response
+        self.start_video_stream()
         s.close()
         return
 
-    def start_video_stream(self,port):
+    def get_pipeline_text(self):
+        srcText = ''
+        if self.camType == "rpicamsrc":
+            srcText = 'rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse !'
+        else if self.camType == 'v4l2src':
+             srcText = 'v4l2src do-timestamp=true ! jpegparse !'
+             
+        return pipelineText = """
+            {srcText}  matroskamux ! queue ! tcpclientsink render-delay=800 ts-offset=-800 host={host} port={port}
+        """.format(srcText=srcText, host=self.host, port=self.port)
+
+    def start_video_stream(self):
         #pipelineText = "rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 host=172.30.9.156 port=30001"
         server_caps = Util.get_server_config(self.host)
         core_clock = self.get_core_clock(self.host)
-        pipelineText = """
-            rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 ts-offset=-800 host={host} port={port}
-        """.format(host= self.host,port=port)
+        pipelineText = self.get_pipeline_text()
         coreStreamer = GSTInstance(pipelineText, core_clock)
         coreStreamer.daemon = True
         coreStreamer.start()
@@ -306,6 +319,7 @@ def get_args():
 
     parser.add_argument(
         '-c', '--camera', action='store_true',
+        choices=['rpicamsrc','v4l2src']
         help="Use this when capturing from a device.  Automatically finds core and streams on live")
 
     parser.add_argument(
@@ -338,7 +352,7 @@ def main():
         camera = NetCamMasterServiceDiscoveryService()
         core = camera.wait_for_core()
         address, port = core
-        camClient = NetCamClient(address)
+        camClient = NetCamClient(address,args.camera)
         while not exitapp:
             time.sleep(1)
 
