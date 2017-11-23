@@ -129,7 +129,7 @@ class NetCamClient(Thread):
         srcText = ''
         if self.camType == "rpicamsrc":
             srcText = 'rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse !'
-        else if self.camType == 'v4l2src':
+        elif self.camType == 'v4l2src':
              srcText = 'v4l2src do-timestamp=true ! jpegparse !'
 
         return pipelineText = """
