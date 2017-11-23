@@ -348,6 +348,8 @@ def main():
         t.start()
         while not exitapp:
             time.sleep(1)
+        t.shutdown()
+        print("Exiting")
 
 
     if args.camera:
