@@ -38,6 +38,7 @@ import socket
 import socketserver
 from uuid import getnode
 import logging
+import os
 
 from lib.connection import Connection
 
@@ -79,6 +80,7 @@ class GSTInstance(Thread):
         print('Shutting down...')
         self.pipeline.set_state(Gst.State.NULL)
         print('Done.')
+        os._exit()
         return
 
 
