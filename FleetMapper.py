@@ -185,14 +185,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         pipelineText = """
             tcpserversrc host=0.0.0.0 port={video_port} ! matroskademux name=d ! decodebin  !
             videoconvert ! videorate ! videoscale !
-            {video_caps} ! mux.
-
-            audiotestsrc ! audiorate ! 
-            {audio_caps} ! mux.
-
-            matroskamux name=mux !
-            queue max-size-time=4000000000 !
-            tcpclientsink host=127.0.0.1 port={core_port}
+            autovideosink sync=false
 
         """.format(video_port = self.video_port, 
                 video_caps = server_caps['videocaps'],
