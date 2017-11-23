@@ -315,8 +315,8 @@ def get_args():
 
 def main():
     args = get_args()
+    Gst.init([])
     if args.master:
-        Gst.init([])
         master = NetCamMasterAdvertisementService(args.ip_address,54545)
         master.daemon = True
         master.start()
