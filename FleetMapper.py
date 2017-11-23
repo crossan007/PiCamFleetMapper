@@ -130,6 +130,9 @@ class NetCamClient(Thread):
         coreStreamer = GSTInstance(pipelineText, core_clock)
         coreStreamer.daemon = True
         coreStreamer.start()
+        while coreStreamer.is_alive():
+            sleep 5
+        os._exit()
 
 class NetCamClientHandler(socketserver.BaseRequestHandler):
 
@@ -337,6 +340,8 @@ def main():
         camClient = NetCamClient(address)
         while not exitapp:
             time.sleep(1)
+
+        print("Exiting")
 
         
 exitapp = False
