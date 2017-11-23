@@ -119,6 +119,7 @@ class NetCamClient(Thread):
         print(response)
         self.start_video_stream(response)
         s.close()
+        return
 
     def start_video_stream(self,port):
         #pipelineText = "rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 host=172.30.9.156 port=30001"
@@ -131,7 +132,7 @@ class NetCamClient(Thread):
         coreStreamer.daemon = True
         coreStreamer.start()
         while coreStreamer.is_alive():
-            sleep 5
+            time.sleep(5)
         os._exit()
 
 class NetCamClientHandler(socketserver.BaseRequestHandler):
