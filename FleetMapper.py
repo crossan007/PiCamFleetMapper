@@ -129,12 +129,11 @@ class NetCamClient(Thread):
     def get_pipeline_text(self):
         srcText = ''
         if self.camType == "rpicamsrc":
-            srcText = 'rpicamsrc bitrate=7000000 ! h264parse !'
+            srcText = 'rpicamsrc bitrate=7000000 ! h264parse ! decodebin ! '
         elif self.camType == 'v4l2src':
-             srcText = 'v4l2src do-timestamp=true ! jpegparse !'
-        srcText = 'videotestsrc is-live=true ! clockoverlay ! jpegenc ! '
+             srcText = 'v4l2src do-timestamp=true ! jpegparse ! jpegdec ! '
         pipelineText = """
-            {srcText}  matroskamux ! queue ! tcpclientsink host={host} port={port}
+            {srcText} clockoverlay ! jpegenc ! matroskamux ! queue ! tcpclientsink host={host} port={port}
         """.format(srcText=srcText, host=self.host, port=self.port)
 
         return pipelineText
