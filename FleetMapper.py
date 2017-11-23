@@ -185,6 +185,8 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         pipelineText = """
             tcpserversrc host=0.0.0.0 port={video_port} ! matroskademux name=d ! decodebin  !
             videoconvert ! videorate ! videoscale !
+            queue min-threshold-time=5000 !
+            video/x-raw,width=640,height=480 !
             autovideosink sync=false
 
         """.format(video_port = self.video_port, 
