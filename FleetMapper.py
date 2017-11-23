@@ -133,7 +133,7 @@ class NetCamClient(Thread):
         elif self.camType == 'v4l2src':
              srcText = 'v4l2src do-timestamp=true ! jpegparse ! '
         pipelineText = """
-            {srcText} ! matroskamux ! queue ! tcpclientsink sync=true host={host} port={port}
+            {srcText} matroskamux ! queue ! tcpclientsink sync=true host={host} port={port}
         """.format(srcText=srcText, host=self.host, port=self.port)
 
         return pipelineText
