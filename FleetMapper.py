@@ -60,8 +60,6 @@ class GSTInstance(Thread):
     pipeline = 0 
     def __init__(self, pipelineText, clock=None):
         Thread.__init__(self)
-        GObject.threads_init()
-        Gst.init([])
         print("Starting Gstremer local pipeline: {pipeline}".format(pipeline=pipelineText))
         self.pipeline = Gst.parse_launch(pipelineText)
         if clock != None:
@@ -81,6 +79,7 @@ class GSTInstance(Thread):
         print('Shutting down...')
         self.pipeline.set_state(Gst.State.NULL)
         print('Done.')
+        return
 
 
 class NetCamClient(Thread):
@@ -317,6 +316,7 @@ def get_args():
 def main():
     args = get_args()
     if args.master:
+        Gst.init([])
         master = NetCamMasterAdvertisementService(args.ip_address,54545)
         master.daemon = True
         master.start()
