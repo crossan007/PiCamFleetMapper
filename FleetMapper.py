@@ -76,6 +76,7 @@ class GSTInstance(Thread):
             mainloop.run()
         except KeyboardInterrupt:
             print('Terminated via Ctrl-C')
+            raise
 
         print('Shutting down...')
         self.pipeline.set_state(Gst.State.NULL)
