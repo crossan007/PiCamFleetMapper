@@ -137,6 +137,10 @@ class NetCamClient(Thread):
         srcText = ''
         NS_TO_MS = 100000
         offset = 0 
+
+        client_src_opts = self.config.get(self.cam_id,"client_src_opts").strip()
+        if not client_src_opts:
+            client_src_opts = " "
         if self.camType == "rpicamsrc":
             srcText = 'rpicamsrc name=videosrc {client_src_opts} ! h264parse ! '
         elif self.camType == 'v4l2src':
@@ -146,8 +150,8 @@ class NetCamClient(Thread):
         """.format(srcText=srcText, 
             host=self.host, 
             port=self.config.get(self.cam_id,"video_port"),
-            client_src_opts = self.config.get(self.cam_id,"client_src_opts").strip())
-        print(pipelineText)
+            client_src_opts = client_src_opts)
+        print(pipelineText )
         pipeline = Gst.parse_launch(pipelineText)
 
         offset = int(self.config.get(self.cam_id,"offset")) * NS_TO_MS
