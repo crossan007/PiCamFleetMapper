@@ -142,15 +142,15 @@ class NetCamClient(Thread):
         if not client_src_opts:
             client_src_opts = " "
         if self.camType == "rpicamsrc":
-            srcText = 'rpicamsrc name=videosrc {cso} ! h264parse ! '
+            srcText = 'rpicamsrc name=videosrc {client_src_opts} ! h264parse ! '
         elif self.camType == 'v4l2src':
-             srcText = 'v4l2src name=videosrc {cso}  ! jpegparse ! '
-        pipelineText = """
-            {srcText} matroskamux ! queue ! tcpclientsink sync=true host={host} port={port}
-        """.format(srcText=srcText, 
+             srcText = 'v4l2src name=videosrc {client_src_opts}  ! jpegparse ! '
+        
+        srcText = srcText.format(client_src_opts = client_src_opts)
+
+        pipelineText = "{srcText} matroskamux ! queue ! tcpclientsink sync=true host={host} port={port}".format(srcText=srcText, 
             host=self.host, 
-            port=self.config.get(self.cam_id,"video_port"),
-            cso = client_src_opts)
+            port=self.config.get(self.cam_id,"video_port"))
         
         print(pipelineText)
         pipeline = Gst.parse_launch(pipelineText)
