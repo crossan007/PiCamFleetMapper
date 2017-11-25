@@ -207,7 +207,8 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
                 )
 
         pipeline = Gst.parse_launch(pipelineText)
-        coreStreamer = GSTInstance(pipeline)
+        core_clock = self.get_core_clock(self.host)
+        coreStreamer = GSTInstance(pipeline,core_clock)
         coreStreamer.daemon = True
         coreStreamer.start()
 
