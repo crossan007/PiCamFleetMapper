@@ -146,8 +146,8 @@ class NetCamClient(Thread):
         """.format(srcText=srcText, host=self.host, port=self.config.get(self.cam_id,"video_port"))
         pipeline = Gst.parse_launch(pipelineText)
 
-        offset = self.config.get(self.cam_id,"offset")
-        pipeline.get_by_name("videosrc").get_static_pad("src").set_offset(int(offset)*NS_TO_MS)
+        offset = int(self.config.get(self.cam_id,"offset")) * NS_TO_MS
+        pipeline.get_by_name("videosrc").get_static_pad("src").set_offset(offset)
 
 
         return pipeline
