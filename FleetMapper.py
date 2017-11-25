@@ -162,7 +162,6 @@ class NetCamClient(Thread):
         return pipeline
 
     def start_video_stream(self):
-        #pipeline = "rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 host=172.30.9.156 port=30001"
         server_caps = Util.get_server_config(self.host)
         core_clock = Util.get_core_clock(self.host)
         pipeline = self.get_pipeline()
@@ -241,6 +240,8 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
                 core_port = self.cam_config.get(self.cam_id,"core_port"),
                 server_custom_pipe = self.cam_config.get(self.cam_id,"server_custom_pipe").strip()
                 )
+
+        print(pipelineText)
 
         pipeline = Gst.parse_launch(pipelineText)
         core_clock = Util.get_core_clock("127.0.0.1")
