@@ -226,7 +226,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
             return ""
 
         virt_camera_angle_string = """
-            tee name=videotee """
+            tee name=videotee !"""
         virt_audio_string = ""
         virt_muxes = ""
         angle_count = 0
