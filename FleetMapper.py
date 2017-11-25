@@ -138,12 +138,15 @@ class NetCamClient(Thread):
         NS_TO_MS = 100000
         offset = 0 
         if self.camType == "rpicamsrc":
-            srcText = 'rpicamsrc name=videosrc bitrate=7000000 ! h264parse ! '
+            srcText = 'rpicamsrc name=videosrc {client_src_opts} ! h264parse ! '
         elif self.camType == 'v4l2src':
-             srcText = 'v4l2src name=videosrc do-timestamp=true ! jpegparse ! '
+             srcText = 'v4l2src name=videosrc {client_src_opts}  ! jpegparse ! '
         pipelineText = """
             {srcText} matroskamux ! queue ! tcpclientsink sync=true host={host} port={port}
-        """.format(srcText=srcText, host=self.host, port=self.config.get(self.cam_id,"video_port"))
+        """.format(srcText=srcText, 
+            host=self.host, 
+            port=self.config.get(self.cam_id,"video_port"),
+            client_src_opts = self.config.get(self.cam_id,"client_src_opts"))
         pipeline = Gst.parse_launch(pipelineText)
 
         offset = int(self.config.get(self.cam_id,"offset")) * NS_TO_MS
@@ -217,7 +220,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         pipelineText = """
             tcpserversrc host=0.0.0.0 port={video_port} ! matroskademux name=d ! decodebin  !
             videoconvert ! videorate ! videoscale !
-            {video_caps} ! mux.
+            {video_caps} ! {server_custom_pipe} mux.
 
             audiotestsrc ! audiorate ! 
             {audio_caps} ! mux.
@@ -229,7 +232,8 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         """.format(video_port = self.cam_config.get(self.cam_id,"video_port"), 
                 video_caps = server_caps['videocaps'],
                 audio_caps = server_caps['audiocaps'],
-                core_port = self.cam_config.get(self.cam_id,"core_port")
+                core_port = self.cam_config.get(self.cam_id,"core_port"),
+                server_custom_pipe = self.cam_config.get(self.cam_id,"server_custom_pipe")
                 )
 
         pipeline = Gst.parse_launch(pipelineText)
