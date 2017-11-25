@@ -178,7 +178,9 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         return
 
     def handle(self):
-        global config
+        global config 
+        config = configparser.ConfigParser()
+        config.read("remotes.ini")
         self.cam_id = self.request.recv(1024).strip().decode('UTF-8')
         if config.has_section(self.cam_id):
             print("found client config: {data}".format(data=self.cam_id))
@@ -374,9 +376,6 @@ def get_args():
 
 def main():
     args = get_args()
-    global config 
-    config = configparser.ConfigParser()
-    config.read("remotes.ini")
     Gst.init([])
     if args.master:
         master = NetCamMasterAdvertisementService(args.ip_address,54545)
