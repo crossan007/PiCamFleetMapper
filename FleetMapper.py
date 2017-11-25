@@ -40,6 +40,7 @@ from uuid import getnode
 import logging
 import os
 import configparser
+import io
 
 from lib.connection import Connection
 
@@ -162,11 +163,8 @@ class NetCamClient(Thread):
 
 class NetCamClientHandler(socketserver.BaseRequestHandler):
 
-    name = ""
-    id = ""
-    video_port = 0
-    core_port = 0
-
+    cam_config = 0
+    id = 0
     def __init__(self, request, client_address, server):
         self.logger = logging.getLogger('EchoRequestHandler')
         self.logger.debug('__init__')
@@ -178,12 +176,11 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
         global config
-        self.id = self.request.recv(1024).strip().decode('UTF-8')
-        #print("data received: {data}".format(data=self.id))
+        self.id = self.request.recv(1024).strip().decode('UTF-8'))
         if config.has_section(self.id):
             print("found client config: {data}".format(data=self.id))
-            self.name = config.get(self.id,"name")
-            self.core_port = config.get(self.id,"core_port")
+            self.cam_config = configparser.ConfigParser()
+            self.cam_config[self.id] = config[self.id]
         else:
             print("Not found client config: {data}".format(data=self.id))
             config.add_section(self.id)
@@ -192,14 +189,18 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
             return
         self.print_self()
         #print("{} connected:".format(self.client_address[0]))
+
+        temp = io.StringIO()
+        self.cam_config.write(temp)
+        print(a.getvalue())
         self.setup_core_listener()
         self.signal_client_start()
 
     def print_self(self):
         print("Cam ID: {id}".format(id=self.id))
-        print("Cam Name: {name}".format(name=self.name))
-        print("Cam Core_Port: {core_port}".format(core_port=self.core_port))
-        print("Cam Encoded Port: {video_port}".format(video_port=self.video_port))
+        print("Cam Name: {name}".format(name=self.cam_config(self.id,"name")))
+        print("Cam Core_Port: {core_port}".format(core_port=self.cam_config(self.id,"core_port"))
+        print("Cam Encoded Port: {video_port}".format(video_port=self.cam_config(self.id,"video_port"))
 
     def signal_client_start(self):
         message = "{port}".format(port=self.video_port).encode()
@@ -375,6 +376,7 @@ def get_args():
 def main():
     args = get_args()
     global config 
+  
     config = configparser.ConfigParser()
     config.read("remotes.ini")
     Gst.init([])
