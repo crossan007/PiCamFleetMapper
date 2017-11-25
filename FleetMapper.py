@@ -253,7 +253,10 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
                 """.format(core_port=config.get(virt_cam_angle,"core_port").strip(),
                 virt_cam_angle=virt_cam_angle)
 
-            virt_audio_string += "audiosrc. ! queue ! mux-{virt_cam_angle}.".format(virt_cam_angle=virt_cam_angle)
+            virt_audio_string += """
+                audiosrc. ! queue ! mux-{virt_cam_angle}.
+                
+            """.format(virt_cam_angle=virt_cam_angle)
 
             
         virt_camera_angle_string += """
