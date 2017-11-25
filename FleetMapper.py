@@ -257,6 +257,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
                 audiosrc. ! queue ! mux-{virt_cam_angle}.
                 
             """.format(virt_cam_angle=virt_cam_angle)
+            angle_count += 1
 
             
         virt_camera_angle_string += """
