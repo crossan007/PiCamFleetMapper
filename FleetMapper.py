@@ -59,10 +59,10 @@ class Util:
 
 class GSTInstance(Thread):
     pipeline = 0 
-    def __init__(self, pipelineText, clock=None):
+    def __init__(self, pipeline, clock=None):
         Thread.__init__(self)
-        print("Starting Gstremer local pipeline: {pipeline}".format(pipeline=pipelineText))
-        self.pipeline = Gst.parse_launch(pipelineText)
+        print("Starting Gstremer local pipeline")
+        self.pipeline = pipeline
         if clock != None:
             print("Using remote clock")
             self.pipeline.use_clock(clock)
@@ -128,22 +128,28 @@ class NetCamClient(Thread):
 
     def get_pipeline_text(self):
         srcText = ''
+        offset = 0 
         if self.camType == "rpicamsrc":
-            srcText = 'rpicamsrc bitrate=7000000 ! h264parse ! '
+            srcText = 'rpicamsrc name=videosrc bitrate=7000000 ! h264parse ! '
+            offset = -800
         elif self.camType == 'v4l2src':
-             srcText = 'v4l2src do-timestamp=true ! jpegparse ! '
+             srcText = 'v4l2src name=videosrc do-timestamp=true ! jpegparse ! '
         pipelineText = """
             {srcText} matroskamux ! queue ! tcpclientsink sync=true host={host} port={port}
         """.format(srcText=srcText, host=self.host, port=self.port)
+        pipeline = Gst.parse_launch(pipelineText)
 
-        return pipelineText
+        pipeline.get_by_name("videosrc").get_static_pad("src").set_offset(offset)
+
+
+        return pipeline
 
     def start_video_stream(self):
-        #pipelineText = "rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 host=172.30.9.156 port=30001"
+        #pipeline = "rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 host=172.30.9.156 port=30001"
         server_caps = Util.get_server_config(self.host)
         core_clock = self.get_core_clock(self.host)
-        pipelineText = self.get_pipeline_text()
-        coreStreamer = GSTInstance(pipelineText, core_clock)
+        pipeline = self.get_pipeline_text()
+        coreStreamer = GSTInstance(pipeline, core_clock)
         coreStreamer.daemon = True
         coreStreamer.start()
         while coreStreamer.is_alive():
@@ -181,7 +187,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
     def setup_core_listener(self):
        
         server_caps = Util.get_server_config('127.0.0.1')
-        pipelineText = """
+        pipeline = """
             tcpserversrc host=0.0.0.0 port={video_port} ! matroskademux name=d ! decodebin  !
             videoconvert ! videorate ! videoscale !
             queue min-threshold-time=500000 !
@@ -193,7 +199,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
                 audio_caps = server_caps['audiocaps'],
                 core_port = self.core_port
                 )
-        coreStreamer = GSTInstance(pipelineText)
+        coreStreamer = GSTInstance(pipeline)
         coreStreamer.daemon = True
         coreStreamer.start()
 
