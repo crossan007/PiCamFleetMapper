@@ -238,18 +238,24 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
                 videotee. ! queue ! """
             virt_camera_angle_string += config.get(virt_cam_angle,"server_custom_pipe").strip() 
             virt_camera_angle_string +=  """
-                videoconvert ! videorate ! videoscale ! {video_caps} ! mux{angle_count}.
+                videoconvert ! videorate ! videoscale ! {video_caps} ! mux-{virt_cam_angle}.
                 """.format(angle_count=angle_count,
                 core_port=config.get(virt_cam_angle,"core_port").strip(),
-                video_caps="{video_caps}")
+                video_caps="{video_caps}",
+                virt_cam_angle=virt_cam_angle
+                )
             
             
-            virt_muxes +=  """matroskamux name=mux{angle_count} ! 
+            virt_muxes +=  """
+            matroskamux name=mux-{virt_cam_angle} ! 
                 queue max-size-time=4000000000 !
-                tcpclientsink host=127.0.0.1 port={core_port}""".format(angle_count=angle_count,
-                core_port=config.get(virt_cam_angle,"core_port").strip())
+                tcpclientsink host=127.0.0.1 port={core_port
+                
+                """.format(angle_count=angle_count,
+                core_port=config.get(virt_cam_angle,"core_port").strip(),
+                virt_cam_angle=virt_cam_angle)
 
-            virt_audio_string += "audiosrc. ! queue ! mux{angle_count}.".format(angle_count=angle_count)
+            virt_audio_string += "audiosrc. ! queue ! mux-{virt_cam_angle}.".format(angle_count=angle_count,virt_cam_angle=virt_cam_angle)
 
             
         virt_camera_angle_string += """
