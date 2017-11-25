@@ -220,17 +220,45 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         print ("Telling {client}: {message}".format(client=self.client_address[0], message=message))
         self.request.sendall(message)
 
+    def get_virt_camera_angles(self):
+
+        if  not self.cam_config.get(self.cam_id,"virtual_camera_angles"):
+            return ""
+
+        virt_camera_angle_string = "tee name=videotee ! "
+        angle_count = 0
+
+        for virt_cam_angle in self.cam_config.get(self.cam_id,"virtual_camera_angles"):
+            if not angle_count:
+                virt_camera_angle_string += "videotee. ! "
+            virt_camera_angle_string += self.cam_config.get(self.virt_cam_angle,"server_custom_pipe").strip() +=  """
+                videoconvert ! videorate ! videoscale ! {video_caps} ! mux{angle_count}
+
+                audiosrc. ! mux{angle_count}.
+
+                matroskamux name=mux{angle_count}. ! 
+                queue max-size-time=4000000000 !
+                tcpclientsink host=127.0.0.1 port={core_port}
+                """.format(angle_count=angle_count,
+                core_port=self.cam_config.get(self.virt_cam_angle,"core_port").strip())
+            
+        virt_camera_angle_string += "videotee. ! "
+        return virt_camera_angle_string
 
     def setup_core_listener(self):
+
+      
        
         server_caps = Util.get_server_config('127.0.0.1')
+        virt_cam_angles = self.get_virt_camera_angles()
+
         pipelineText = """
             tcpserversrc host=0.0.0.0 port={video_port} ! matroskademux name=d ! decodebin  !
             videoconvert ! videorate ! videoscale !
-            {video_caps} ! {server_custom_pipe} mux.
+            {video_caps} ! {server_custom_pipe} {virt_cam_angles} mux.
 
             audiotestsrc ! audiorate ! 
-            {audio_caps} ! mux.
+            {audio_caps} ! tee name=audiosrc ! mux.
 
             matroskamux name=mux !
             queue max-size-time=4000000000 !
@@ -240,7 +268,8 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
                 video_caps = server_caps['videocaps'],
                 audio_caps = server_caps['audiocaps'],
                 core_port = self.cam_config.get(self.cam_id,"core_port"),
-                server_custom_pipe = self.cam_config.get(self.cam_id,"server_custom_pipe").strip()
+                server_custom_pipe = self.cam_config.get(self.cam_id,"server_custom_pipe").strip(),
+                virt_cam_angles = self.get_virt_camera_angles()
                 )
 
         print(pipelineText)
@@ -250,6 +279,9 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         coreStreamer = GSTInstance(pipeline,core_clock)
         coreStreamer.daemon = True
         coreStreamer.start()
+
+       
+
 
 class NetCamMasterServer(socketserver.TCPServer):
 
