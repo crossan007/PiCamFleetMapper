@@ -57,6 +57,20 @@ class Util:
             }
         return server_conf
 
+    def get_core_clock(core_ip, core_clock_port=9998):
+
+        clock = GstNet.NetClientClock.new(
+            'voctocore', core_ip, core_clock_port, 0)
+
+        print('obtained NetClientClock from host: {ip}:{port}'.format(
+            ip=core_ip, port=core_clock_port))
+
+        print('waiting for NetClientClock to sync...')
+        clock.wait_for_sync(Gst.CLOCK_TIME_NONE)
+        print('synced with NetClientClock.')
+
+        return clock
+
 class GSTInstance(Thread):
     pipeline = 0 
     def __init__(self, pipeline, clock=None):
@@ -99,19 +113,6 @@ class NetCamClient(Thread):
         h = iter(hex(getnode())[2:].zfill(12))
         return ":".join(i + next(h) for i in h)
 
-    def get_core_clock(self, core_ip, core_clock_port=9998):
-
-        clock = GstNet.NetClientClock.new(
-            'voctocore', core_ip, core_clock_port, 0)
-
-        print('obtained NetClientClock from host: {ip}:{port}'.format(
-            ip=core_ip, port=core_clock_port))
-
-        print('waiting for NetClientClock to sync...')
-        clock.wait_for_sync(Gst.CLOCK_TIME_NONE)
-        print('synced with NetClientClock.')
-
-        return clock
 
     def run(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -148,7 +149,7 @@ class NetCamClient(Thread):
     def start_video_stream(self):
         #pipeline = "rpicamsrc bitrate=7000000 do-timestamp=true ! h264parse ! matroskamux ! queue ! tcpclientsink render-delay=800 host=172.30.9.156 port=30001"
         server_caps = Util.get_server_config(self.host)
-        core_clock = self.get_core_clock(self.host)
+        core_clock = Util.get_core_clock(self.host)
         pipeline = self.get_pipeline()
         coreStreamer = GSTInstance(pipeline, core_clock)
         coreStreamer.daemon = True
@@ -207,7 +208,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
                 )
 
         pipeline = Gst.parse_launch(pipelineText)
-        core_clock = self.get_core_clock("127.0.0.1")
+        core_clock = Util.get_core_clock("127.0.0.1")
         coreStreamer = GSTInstance(pipeline,core_clock)
         coreStreamer.daemon = True
         coreStreamer.start()
