@@ -103,28 +103,32 @@ class GSTInstance(Thread):
 
 class NetCamClient(Thread):
     host = 0
-    port = 0
     camType = ''
+    config = 0
+    cam_id = 0
+
     def __init__(self,host,camType):
         Thread.__init__(self)
         self.host=host
         self.camType = camType
         self.run()
-
+        
     def get_self_id(self):
         h = iter(hex(getnode())[2:].zfill(12))
         return ":".join(i + next(h) for i in h)
 
 
     def run(self):
+        self.cam_id = self.get_self_id()
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.host, 5455))
-        message = "{mac}".format(mac=self.get_self_id())
+        message = "{mac}".format(mac=self.cam_id)
         mesbytes = bytes(message,'UTF-8')
         len_sent = s.send(mesbytes)
-        response = s.recv(len_sent).decode('UTF-8')
+        response = s.recv(2048).decode('UTF-8')
         print(response)
-        self.port = response
+        self.config = configparser.ConfigParser()
+        self.config.read_string(response)
         self.start_video_stream()
         s.close()
         return
@@ -135,16 +139,15 @@ class NetCamClient(Thread):
         offset = 0 
         if self.camType == "rpicamsrc":
             srcText = 'rpicamsrc name=videosrc bitrate=7000000 ! h264parse ! '
-            offset = -1600*NS_TO_MS
         elif self.camType == 'v4l2src':
              srcText = 'v4l2src name=videosrc do-timestamp=true ! jpegparse ! '
-             offset = 1600*NS_TO_MS
         pipelineText = """
             {srcText} matroskamux ! queue ! tcpclientsink sync=true host={host} port={port}
-        """.format(srcText=srcText, host=self.host, port=self.port)
+        """.format(srcText=srcText, host=self.host, port=self.config.get(self.cam_id,"video_port"))
         pipeline = Gst.parse_launch(pipelineText)
 
-        pipeline.get_by_name("videosrc").get_static_pad("src").set_offset(offset)
+        offset = self.config.get(self.cam_id,"offset")
+        pipeline.get_by_name("videosrc").get_static_pad("src").set_offset(int(offset))
 
 
         return pipeline
@@ -164,7 +167,7 @@ class NetCamClient(Thread):
 class NetCamClientHandler(socketserver.BaseRequestHandler):
 
     cam_config = 0
-    id = 0
+    cam_id = 0
     def __init__(self, request, client_address, server):
         self.logger = logging.getLogger('EchoRequestHandler')
         self.logger.debug('__init__')
@@ -176,38 +179,35 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
         global config
-        self.id = self.request.recv(1024).strip().decode('UTF-8'))
-        if config.has_section(self.id):
-            print("found client config: {data}".format(data=self.id))
+        self.cam_id = self.request.recv(1024).strip().decode('UTF-8')
+        if config.has_section(self.cam_id):
+            print("found client config: {data}".format(data=self.cam_id))
             self.cam_config = configparser.ConfigParser()
-            self.cam_config[self.id] = config[self.id]
-        else:
-            print("Not found client config: {data}".format(data=self.id))
-            config.add_section(self.id)
+            self.cam_config[self.cam_id] = config[self.cam_id]
+        elif self.cam_id != 0:
+            print("Not found client config: {data}".format(data=self.cam_id))
+            config.add_section(self.cam_id)
             with open("remotes.ini","w") as configfile:
                 config.write(configfile)
             return
         self.print_self()
         #print("{} connected:".format(self.client_address[0]))
-
-        temp = io.StringIO()
-        self.cam_config.write(temp)
-        print(a.getvalue())
         self.setup_core_listener()
         self.signal_client_start()
 
     def print_self(self):
-        print("Cam ID: {id}".format(id=self.id))
-        print("Cam Name: {name}".format(name=self.cam_config(self.id,"name")))
-        print("Cam Core_Port: {core_port}".format(core_port=self.cam_config(self.id,"core_port"))
-        print("Cam Encoded Port: {video_port}".format(video_port=self.cam_config(self.id,"video_port"))
+        print("Cam ID: {id}".format(id=self.cam_id))
+        print("Cam Name: {name}".format(name=self.cam_config.get(self.cam_id,"name")))
+        print("Cam Core_Port: {core_port}".format(core_port=self.cam_config.get(self.cam_id,"core_port")))
+        print("Cam Encoded Port: {video_port}".format(video_port=self.cam_config.get(self.cam_id,"video_port")))
 
     def signal_client_start(self):
-        message = "{port}".format(port=self.video_port).encode()
+        temp = io.StringIO()
+        self.cam_config.write(temp)
+        message = "{config}".format(config=temp.getvalue()).encode()
         print ("Telling {client}: {message}".format(client=self.client_address[0], message=message))
         self.request.sendall(message)
 
-   
 
     def setup_core_listener(self):
        
@@ -224,10 +224,10 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
             queue max-size-time=4000000000 !
             tcpclientsink host=127.0.0.1 port={core_port}
 
-        """.format(video_port = self.video_port, 
+        """.format(video_port = self.cam_config.get(self.cam_id,"video_port"), 
                 video_caps = server_caps['videocaps'],
                 audio_caps = server_caps['audiocaps'],
-                core_port = self.core_port
+                core_port = self.cam_config.get(self.cam_id,"core_port")
                 )
 
         pipeline = Gst.parse_launch(pipelineText)
@@ -248,7 +248,6 @@ class NetCamMasterServer(socketserver.TCPServer):
         self.logger = logging.getLogger('EchoServer')
         self.logger.debug('__init__')
         global config
-        print(config.sections())
         socketserver.TCPServer.__init__(self, server_address,
                                         handler_class)
         
@@ -376,7 +375,6 @@ def get_args():
 def main():
     args = get_args()
     global config 
-  
     config = configparser.ConfigParser()
     config.read("remotes.ini")
     Gst.init([])
