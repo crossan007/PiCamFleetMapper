@@ -131,7 +131,7 @@ class NetCamClient(Thread):
         offset = 0 
         if self.camType == "rpicamsrc":
             srcText = 'rpicamsrc name=videosrc bitrate=7000000 ! h264parse ! '
-            offset = -800
+            offset = -1600
         elif self.camType == 'v4l2src':
              srcText = 'v4l2src name=videosrc do-timestamp=true ! jpegparse ! '
         pipelineText = """
