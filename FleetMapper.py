@@ -39,6 +39,7 @@ import socketserver
 from uuid import getnode
 import logging
 import os
+import configparser
 
 from lib.connection import Connection
 
@@ -117,7 +118,7 @@ class NetCamClient(Thread):
     def run(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.host, 5455))
-        message = "hello %s" % (self.get_self_id())
+        message = "{mac}".format(mac=self.get_self_id())
         mesbytes = bytes(message,'UTF-8')
         len_sent = s.send(mesbytes)
         response = s.recv(len_sent).decode('UTF-8')
@@ -133,9 +134,10 @@ class NetCamClient(Thread):
         offset = 0 
         if self.camType == "rpicamsrc":
             srcText = 'rpicamsrc name=videosrc bitrate=7000000 ! h264parse ! '
-            offset = 800*NS_TO_MS
+            offset = -1600*NS_TO_MS
         elif self.camType == 'v4l2src':
              srcText = 'v4l2src name=videosrc do-timestamp=true ! jpegparse ! '
+             offset = 1600*NS_TO_MS
         pipelineText = """
             {srcText} matroskamux ! queue ! tcpclientsink sync=true host={host} port={port}
         """.format(srcText=srcText, host=self.host, port=self.port)
@@ -160,6 +162,8 @@ class NetCamClient(Thread):
 
 class NetCamClientHandler(socketserver.BaseRequestHandler):
 
+    name = ""
+    id = ""
     video_port = 0
     core_port = 0
 
@@ -167,17 +171,35 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         self.logger = logging.getLogger('EchoRequestHandler')
         self.logger.debug('__init__')
         self.video_port = server.clients_connected -1 + server.base_port # this could be hardcoded to MAC<->Port correlation
-        self.core_port = server.clients_connected -1 + server.core_start_port
         socketserver.BaseRequestHandler.__init__(self, request,
                                                  client_address,
                                                  server)
         return
 
     def handle(self):
-        self.data = self.request.recv(1024).strip()
-        print("{} connected:".format(self.client_address[0]))
+        global config
+        self.id = self.request.recv(1024).strip().decode('UTF-8')
+        #print("data received: {data}".format(data=self.id))
+        if config.has_section(self.id):
+            print("found client config: {data}".format(data=self.id))
+            self.name = config.get(self.id,"name")
+            self.core_port = config.get(self.id,"core_port")
+        else:
+            print("Not found client config: {data}".format(data=self.id))
+            config.add_section(self.id)
+            with open("remotes.ini","w") as configfile:
+                config.write(configfile)
+            return
+        self.print_self()
+        #print("{} connected:".format(self.client_address[0]))
         self.setup_core_listener()
         self.signal_client_start()
+
+    def print_self(self):
+        print("Cam ID: {id}".format(id=self.id))
+        print("Cam Name: {name}".format(name=self.name))
+        print("Cam Core_Port: {core_port}".format(core_port=self.core_port))
+        print("Cam Encoded Port: {video_port}".format(video_port=self.video_port))
 
     def signal_client_start(self):
         message = "{port}".format(port=self.video_port).encode()
@@ -224,8 +246,11 @@ class NetCamMasterServer(socketserver.TCPServer):
                  ):
         self.logger = logging.getLogger('EchoServer')
         self.logger.debug('__init__')
+        global config
+        print(config.sections())
         socketserver.TCPServer.__init__(self, server_address,
                                         handler_class)
+        
         return
 
     def server_activate(self):
@@ -349,6 +374,9 @@ def get_args():
 
 def main():
     args = get_args()
+    global config 
+    config = configparser.ConfigParser()
+    config.read("remotes.ini")
     Gst.init([])
     if args.master:
         master = NetCamMasterAdvertisementService(args.ip_address,54545)
@@ -376,6 +404,8 @@ def main():
 
         
 exitapp = False
+config = 0
+
 if __name__ == '__main__':
     try:
         main()
