@@ -223,7 +223,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
     def get_virtual_camera_angles(self):
         global config
         if not self.cam_config.get(self.cam_id,"virtual_camera_angles").strip():
-            return ""
+            return "", "", ""
 
         virt_camera_angle_string = """
             tee name=videotee !"""
