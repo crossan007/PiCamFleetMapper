@@ -221,48 +221,66 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         self.request.sendall(message)
 
     def get_virtual_camera_angles(self):
-
+        global config
         if  not self.cam_config.get(self.cam_id,"virtual_camera_angles"):
             return ""
 
-        virt_camera_angle_string = "tee name=videotee ! "
+        virt_camera_angle_string = """
+            tee name=videotee """
+        virt_audio_string = ""
+        virt_muxes = ""
         angle_count = 0
 
         for virt_cam_angle in self.cam_config.get(self.cam_id,"virtual_camera_angles").split(','):
-            if not angle_count:
-                virt_camera_angle_string += "videotee. ! "
-            
-            virt_camera_angle_string += self.config.get(virt_cam_angle,"server_custom_pipe").strip() 
+            if angle_count > 0:
+                virt_camera_angle_string += """
+                
+                videotee. ! queue ! """
+            virt_camera_angle_string += config.get(virt_cam_angle,"server_custom_pipe").strip() 
             virt_camera_angle_string +=  """
-                videoconvert ! videorate ! videoscale ! {video_caps} ! mux{angle_count}
-
-                audiosrc. ! mux{angle_count}.
-
-                matroskamux name=mux{angle_count}. ! 
-                queue max-size-time=4000000000 !
-                tcpclientsink host=127.0.0.1 port={core_port}
+                videoconvert ! videorate ! videoscale ! {video_caps} ! mux{angle_count}.
                 """.format(angle_count=angle_count,
-                core_port=self.cam_config.get(self.virt_cam_angle,"core_port").strip())
+                core_port=config.get(virt_cam_angle,"core_port").strip(),
+                video_caps="{video_caps}")
             
-        virt_camera_angle_string += "videotee. ! "
-        return virt_camera_angle_string
+            
+            virt_muxes +=  """matroskamux name=mux{angle_count} ! 
+                queue max-size-time=4000000000 !
+                tcpclientsink host=127.0.0.1 port={core_port}""".format(angle_count=angle_count,
+                core_port=config.get(virt_cam_angle,"core_port").strip())
+
+            virt_audio_string += "audiosrc. ! queue ! mux{angle_count}.".format(angle_count=angle_count)
+
+            
+        virt_camera_angle_string += """
+        
+            videotee. ! queue ! """
+
+        return virt_camera_angle_string, virt_audio_string, virt_muxes
 
     def setup_core_listener(self):
 
       
        
         server_caps = Util.get_server_config('127.0.0.1')
-        virt_cam_angles = self.get_virtual_camera_angles().format(video_caps = server_caps['videocaps'])
+        virt_cam_angles, virt_audio_mixes, virt_muxes = self.get_virtual_camera_angles()
+        virt_cam_angles = virt_cam_angles.format(video_caps = server_caps['videocaps'])
 
         pipelineText = """
             tcpserversrc host=0.0.0.0 port={video_port} ! matroskademux name=d ! decodebin  !
-            videoconvert ! videorate ! videoscale !
-            {video_caps} ! {server_custom_pipe} {virt_cam_angles} mux.
+
+            videoconvert ! videorate ! videoscale ! {video_caps} ! 
+            
+            {server_custom_pipe} {virt_cam_angles} mainmux.
 
             audiotestsrc ! audiorate ! 
-            {audio_caps} ! tee name=audiosrc ! mux.
+            {audio_caps} ! tee name=audiosrc ! queue ! mainmux.
 
-            matroskamux name=mux !
+            {virt_audio_mixes}
+
+            {virt_muxes}
+
+            matroskamux name=mainmux !
             queue max-size-time=4000000000 !
             tcpclientsink host=127.0.0.1 port={core_port}
 
@@ -271,7 +289,9 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
                 audio_caps = server_caps['audiocaps'],
                 core_port = self.cam_config.get(self.cam_id,"core_port"),
                 server_custom_pipe = self.cam_config.get(self.cam_id,"server_custom_pipe").strip(),
-                virt_cam_angles = virt_cam_angles
+                virt_cam_angles = virt_cam_angles,
+                virt_audio_mixes = virt_audio_mixes,
+                virt_muxes = virt_muxes
                 )
 
         print(pipelineText)
