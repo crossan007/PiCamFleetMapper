@@ -220,7 +220,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         print ("Telling {client}: {message}".format(client=self.client_address[0], message=message))
         self.request.sendall(message)
 
-    def get_virt_camera_angles(self):
+    def get_virtual_camera_angles(self):
 
         if  not self.cam_config.get(self.cam_id,"virtual_camera_angles"):
             return ""
@@ -228,10 +228,12 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         virt_camera_angle_string = "tee name=videotee ! "
         angle_count = 0
 
-        for virt_cam_angle in self.cam_config.get(self.cam_id,"virtual_camera_angles"):
+        for virt_cam_angle in self.cam_config.get(self.cam_id,"virtual_camera_angles").split(','):
             if not angle_count:
                 virt_camera_angle_string += "videotee. ! "
-            virt_camera_angle_string += self.cam_config.get(self.virt_cam_angle,"server_custom_pipe").strip() +=  """
+            
+            virt_camera_angle_string += self.config.get(virt_cam_angle,"server_custom_pipe").strip() 
+            virt_camera_angle_string +=  """
                 videoconvert ! videorate ! videoscale ! {video_caps} ! mux{angle_count}
 
                 audiosrc. ! mux{angle_count}.
@@ -250,7 +252,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
       
        
         server_caps = Util.get_server_config('127.0.0.1')
-        virt_cam_angles = self.get_virt_camera_angles()
+        virt_cam_angles = self.get_virtual_camera_angles().format(video_caps = server_caps['videocaps'])
 
         pipelineText = """
             tcpserversrc host=0.0.0.0 port={video_port} ! matroskademux name=d ! decodebin  !
@@ -269,7 +271,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
                 audio_caps = server_caps['audiocaps'],
                 core_port = self.cam_config.get(self.cam_id,"core_port"),
                 server_custom_pipe = self.cam_config.get(self.cam_id,"server_custom_pipe").strip(),
-                virt_cam_angles = self.get_virt_camera_angles()
+                virt_cam_angles = virt_cam_angles
                 )
 
         print(pipelineText)
