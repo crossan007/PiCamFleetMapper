@@ -128,10 +128,11 @@ class NetCamClient(Thread):
 
     def get_pipeline(self):
         srcText = ''
+        NS_TO_MS = 100000
         offset = 0 
         if self.camType == "rpicamsrc":
             srcText = 'rpicamsrc name=videosrc bitrate=7000000 ! h264parse ! '
-            offset = -1600
+            offset = 800*NS_TO_MS
         elif self.camType == 'v4l2src':
              srcText = 'v4l2src name=videosrc do-timestamp=true ! jpegparse ! '
         pipelineText = """
