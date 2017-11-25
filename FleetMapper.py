@@ -146,7 +146,7 @@ class NetCamClient(Thread):
         """.format(srcText=srcText, 
             host=self.host, 
             port=self.config.get(self.cam_id,"video_port"),
-            client_src_opts = self.config.get(self.cam_id,"client_src_opts"))
+            client_src_opts = self.config.get(self.cam_id,"client_src_opts").strip())
         pipeline = Gst.parse_launch(pipelineText)
 
         offset = int(self.config.get(self.cam_id,"offset")) * NS_TO_MS
@@ -233,7 +233,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
                 video_caps = server_caps['videocaps'],
                 audio_caps = server_caps['audiocaps'],
                 core_port = self.cam_config.get(self.cam_id,"core_port"),
-                server_custom_pipe = self.cam_config.get(self.cam_id,"server_custom_pipe")
+                server_custom_pipe = self.cam_config.get(self.cam_id,"server_custom_pipe").strip()
                 )
 
         pipeline = Gst.parse_launch(pipelineText)
