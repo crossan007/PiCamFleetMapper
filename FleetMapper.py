@@ -142,7 +142,7 @@ class NetCamClient(Thread):
         if not client_src_opts:
             client_src_opts = " "
         if self.camType == "rpicamsrc":
-            srcText = 'rpicamsrc name=videosrc {client_src_opts} ! h264parse ! queue ! '
+            srcText = 'rpicamsrc name=videosrc {client_src_opts} ! h264parse ! identity ts-offset=-800000000 sync=true ! queue ! '
         elif self.camType == 'v4l2src':
              srcText = 'v4l2src name=videosrc {client_src_opts}  ! jpegparse ! queue ! '
         
