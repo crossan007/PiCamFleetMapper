@@ -148,7 +148,7 @@ class NetCamClient(Thread):
         
         srcText = srcText.format(client_src_opts = client_src_opts)
 
-        pipelineText = "{srcText} matroskamux ! queue ! tcpclientsink sync=true host={host} port={port}".format(srcText=srcText, 
+        pipelineText = "{srcText} matroskamux ! queue ! tcpclientsink host={host} port={port}".format(srcText=srcText, 
             host=self.host, 
             port=self.config.get(self.cam_id,"video_port"))
         
