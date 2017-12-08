@@ -432,12 +432,13 @@ def get_args():
 
     return args
 
-def exit_master():
+def exit_master(signal, frame):
     print("Cleaning Up master")
     t.close()
     t.shutdown()
     master.end()
     print("Exiting")
+    sys.exit(0)
 
 
 def main():
