@@ -290,7 +290,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         self.coreStreamer = GSTInstance(pipeline,core_clock)
 
 
-    def finish(self):
+    #def finish(self):
         #here we clean up the running coreStreamer thread
         #self.coreStreamer.end()
 
