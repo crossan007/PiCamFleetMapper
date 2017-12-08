@@ -41,7 +41,6 @@ import logging
 import os
 import configparser
 import io
-import signal
 
 from lib.connection import Connection
 
@@ -432,13 +431,14 @@ def get_args():
 
     return args
 
-def exit_master(signal, frame):
-    print("Cleaning Up master")
-    t.close()
-    t.shutdown()
-    master.end()
-    print("Exiting")
-    sys.exit(0)
+def exit_master():
+    if args.master:
+        print("Cleaning Up master")
+        t.close()
+        t.shutdown()
+        master.end()
+        print("Exiting")
+    mainloop.quit()
 
 
 def main():
@@ -452,8 +452,6 @@ def main():
         t = Thread(target=myServer.serve_forever)
         t.daemon = True  # don't hang on exit
         t.start()
-        signal.signal(signal.SIGINT, exit_master)
-
 
     if args.camera:
         camera = NetCamMasterServiceDiscoveryService()
@@ -461,6 +459,7 @@ def main():
         address, port = core
         camClient = NetCamClient(address,args.camera)
 
+args = 0 
 config = 0
 mainloop = 0
 
@@ -470,4 +469,4 @@ if __name__ == '__main__':
         main()
         mainloop.run()
     except KeyboardInterrupt:
-        mainloop.quit()
+        exit_master()
