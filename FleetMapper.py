@@ -453,8 +453,8 @@ def main():
         master = NetCamMasterAdvertisementService(args.ip_address,54545)
         master.daemon = True
         master.start()
-        myServer = NetCamMasterServer((args.ip_address,5455),NetCamClientHandler)
-        t =Thread(target=myServer.serve_forever)
+        myserver = NetCamMasterServer((args.ip_address,5455),NetCamClientHandler)
+        t =Thread(target=myserver.serve_forever)
         t.daemon = True  # don't allow this thread to capture the keyboard interrupt
         t.start()
 
