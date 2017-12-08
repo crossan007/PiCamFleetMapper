@@ -431,6 +431,10 @@ def get_args():
 
     return args
 
+args = 0 
+config = 0
+mainloop = 0
+
 def exit_master():
     if args.master:
         print("Cleaning Up master")
@@ -459,9 +463,7 @@ def main():
         address, port = core
         camClient = NetCamClient(address,args.camera)
 
-args = 0 
-config = 0
-mainloop = 0
+
 
 if __name__ == '__main__':
     mainloop = GObject.MainLoop()
