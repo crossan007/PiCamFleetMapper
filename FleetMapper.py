@@ -435,21 +435,21 @@ args = 0
 config = 0
 mainloop = 0
 t = 0 
-master = 0 
+master = 0
+myserver = 0
 
 def exit_master():
-    global args, mainloop, t, master
+    global args, mainloop, t, master, myserver
     if args.master:
         print("Cleaning Up master")
-        #t.close()
-        #t.shutdown()
+        myserver.shutdown()
         master.stop()
         print("Exiting")
     mainloop.quit()
 
 
 def main():
-    global args, mainloop, t, master
+    global args, mainloop, t, master, myserver
     Gst.init([])
     if args.master:
         master = NetCamMasterAdvertisementService(args.ip_address,54545)
