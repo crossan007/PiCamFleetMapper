@@ -440,7 +440,7 @@ def exit_master():
     if args.master:
         print("Cleaning Up master")
         myserver.shutdown()
-        myserver.close()
+        myserver.server_close()
         master.stop()
         print("Exiting")
     mainloop.quit()
