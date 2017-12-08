@@ -96,6 +96,7 @@ class NetCamClient():
     config = 0
     cam_id = 0
     coreStreamer = 0
+    shouldExit=false
 
     def __init__(self,host,camType):
         self.host=host
@@ -112,6 +113,10 @@ class NetCamClient():
         self.config.read_string(response)
         self.start_video_stream()
         s.close()
+        while not shouldExit:
+            time.sleep(5)
+
+        self.coreStreamer.end()
 
         
     def get_self_id(self):
@@ -141,7 +146,7 @@ class NetCamClient():
         return pipeline
 
     def on_eos(self):
-        end()
+        shouldExit=true
 
     def start_video_stream(self):
         server_caps = Util.get_server_config(self.host)
@@ -151,9 +156,7 @@ class NetCamClient():
         self.coreStreamer.pipeline.bus.connect("message::eos",self.on_eos)
         self.coreStreamer.pipeline.bus.connect("message::error",self.on_eos)
 
-
-    def end(self):
-        self.coreStreamer.end()
+        
 
 
 class NetCamClientHandler(socketserver.BaseRequestHandler):
