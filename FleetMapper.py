@@ -445,6 +445,7 @@ def main():
         t.start()
         while not exitapp:
             time.sleep(1)
+        t.close()
         t.shutdown()
         master.end()
         print("Exiting")
