@@ -436,6 +436,7 @@ config = 0
 mainloop = 0
 
 def exit_master():
+    global args
     if args.master:
         print("Cleaning Up master")
         t.close()
@@ -446,7 +447,7 @@ def exit_master():
 
 
 def main():
-    args = get_args()
+    global args
     Gst.init([])
     if args.master:
         master = NetCamMasterAdvertisementService(args.ip_address,54545)
@@ -468,6 +469,7 @@ def main():
 if __name__ == '__main__':
     mainloop = GObject.MainLoop()
     try:
+        args = get_args()
         main()
         mainloop.run()
     except KeyboardInterrupt:
