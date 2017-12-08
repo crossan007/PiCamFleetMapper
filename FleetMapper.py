@@ -457,9 +457,7 @@ def main():
         master.daemon = True
         master.start()
         myServer = NetCamMasterServer((args.ip_address,5455),NetCamClientHandler)
-        t = Thread(target=myServer.serve_forever)
-        t.daemon = True  # don't hang on exit
-        t.start()
+        myServer.serve_forever()
 
     if args.camera:
         camera = NetCamMasterServiceDiscoveryService()
