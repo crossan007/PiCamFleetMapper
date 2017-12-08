@@ -299,6 +299,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
 
 class NetCamMasterServer(socketserver.TCPServer):
 
+    allow_reuse_address = True
     clients_connected = 0
     base_port = 20000
     core_start_port = 10004
