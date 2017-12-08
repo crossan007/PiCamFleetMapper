@@ -441,9 +441,9 @@ def exit_master():
     global args, mainloop, t, master
     if args.master:
         print("Cleaning Up master")
-        t.close()
-        t.shutdown()
-        master.end()
+        #t.close()
+        #t.shutdown()
+        master.stop()
         print("Exiting")
     mainloop.quit()
 
