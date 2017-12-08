@@ -321,9 +321,6 @@ class NetCamMasterServer(socketserver.TCPServer):
 
     def serve_forever(self, poll_interval=0.5):
         self.logger.debug('waiting for request')
-        self.logger.info(
-            'Handling requests, press <Ctrl-C> to quit'
-        )
         socketserver.TCPServer.serve_forever(self, poll_interval)
         return
 
@@ -457,7 +454,9 @@ def main():
         master.daemon = True
         master.start()
         myServer = NetCamMasterServer((args.ip_address,5455),NetCamClientHandler)
-        myServer.serve_forever()
+        t =Thread(target=myServer.serve_forever)
+        t.daemon = True  # don't allow this thread to capture the keyboard interrupt
+        t.start()
 
     if args.camera:
         camera = NetCamMasterServiceDiscoveryService()
