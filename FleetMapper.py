@@ -292,7 +292,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
 
     def finish(self):
         #here we clean up the running coreStreamer thread
-        self.coreStreamer.end()
+        #self.coreStreamer.end()
 
        
 
