@@ -113,7 +113,7 @@ class NetCamClient():
         self.config.read_string(response)
         self.start_video_stream()
         s.close()
-        while not shouldExit:
+        while not self.shouldExit:
             time.sleep(5)
 
         self.coreStreamer.end()
@@ -146,7 +146,7 @@ class NetCamClient():
         return pipeline
 
     def on_eos(self):
-        shouldExit = True
+        self.shouldExit = True
 
     def start_video_stream(self):
         server_caps = Util.get_server_config(self.host)
