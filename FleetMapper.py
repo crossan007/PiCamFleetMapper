@@ -100,7 +100,6 @@ class NetCamClient():
     def __init__(self,host,camType):
         self.host=host
         self.camType = camType
-        self.run()
         self.cam_id = self.get_self_id()
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.host, 5455))
@@ -113,7 +112,7 @@ class NetCamClient():
         self.config.read_string(response)
         self.start_video_stream()
         s.close()
-        return
+
         
     def get_self_id(self):
         h = iter(hex(getnode())[2:].zfill(12))
@@ -439,20 +438,26 @@ mainloop = 0
 t = 0 
 master = 0
 myserver = 0
+camera = 0
 
 def exit_master():
-    global args, mainloop, t, master, myserver
+    global args, mainloop, t, master, myserver, camera
     if args.master:
         print("Cleaning Up master")
         myserver.shutdown()
         myserver.server_close()
         master.stop()
         print("Exiting")
+
+
+    if args.camera:
+        camera.end()
+
     mainloop.quit()
 
 
 def main():
-    global args, mainloop, t, master, myserver
+    global args, mainloop, t, master, myserver, camera
     Gst.init([])
     if args.master:
         master = NetCamMasterAdvertisementService(args.ip_address,54545)
