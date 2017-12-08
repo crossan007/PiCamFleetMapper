@@ -431,6 +431,13 @@ def get_args():
 
     return args
 
+def exit_master():
+    t.close()
+    t.shutdown()
+    master.end()
+    print("Exiting")
+
+
 
 def main():
     args = get_args()
@@ -443,12 +450,8 @@ def main():
         t = Thread(target=myServer.serve_forever)
         t.daemon = True  # don't hang on exit
         t.start()
-        while not exitapp:
-            time.sleep(1)
-        t.close()
-        t.shutdown()
-        master.end()
-        print("Exiting")
+       
+       
 
 
     if args.camera:
@@ -456,19 +459,14 @@ def main():
         core = camera.wait_for_core()
         address, port = core
         camClient = NetCamClient(address,args.camera)
-        while not exitapp:
-            time.sleep(1)
 
-        print("Exiting")
-
-        
-exitapp = False
 config = 0
+mainloop = 0
 
 if __name__ == '__main__':
+    mainloop = GObject.mainloop()
     try:
         main()
+        mainloop.run()
     except KeyboardInterrupt:
-        print("setting exitapp=true")
-        exitapp = True
-        raise
+        mainloop.quit()
