@@ -41,6 +41,7 @@ import logging
 import os
 import configparser
 import io
+import signal
 
 from lib.connection import Connection
 
@@ -432,11 +433,11 @@ def get_args():
     return args
 
 def exit_master():
+    print("Cleaning Up master")
     t.close()
     t.shutdown()
     master.end()
     print("Exiting")
-
 
 
 def main():
@@ -450,8 +451,7 @@ def main():
         t = Thread(target=myServer.serve_forever)
         t.daemon = True  # don't hang on exit
         t.start()
-       
-       
+        signal.signal(signal.SIGINT, exit_master)
 
 
     if args.camera:
@@ -464,7 +464,7 @@ config = 0
 mainloop = 0
 
 if __name__ == '__main__':
-    mainloop = GObject.mainloop()
+    mainloop = GObject.MainLoop()
     try:
         main()
         mainloop.run()
