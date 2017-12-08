@@ -148,7 +148,7 @@ class NetCamClient():
         core_clock = Util.get_core_clock(self.host)
         pipeline = self.get_pipeline()
         self.coreStreamer = GSTInstance(pipeline, core_clock)
-        self.coreStreamer.pipeline.bus.connect("message:eos",on_eos)
+        self.coreStreamer.pipeline.bus.connect("message:eos",self.on_eos)
 
 
     def end(self):
