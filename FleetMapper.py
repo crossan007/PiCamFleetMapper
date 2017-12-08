@@ -138,17 +138,9 @@ class NetCamClient(Thread):
         NS_TO_MS = 100000
         offset = 0 
 
-        client_src_opts = self.config.get(self.cam_id,"client_src_opts").strip()
-        if not client_src_opts:
-            client_src_opts = " "
-        if self.camType == "rpicamsrc":
-            srcText = 'rpicamsrc sensor-mode=2 name=videosrc {client_src_opts} ! h264parse ! queue ! '
-        elif self.camType == 'v4l2src':
-             srcText = 'v4l2src name=videosrc {client_src_opts}  ! jpegparse ! queue ! '
-        
-        srcText = srcText.format(client_src_opts = client_src_opts)
+        srcText = self.config.get(self.cam_id,"client_src").strip()
 
-        pipelineText = "{srcText} matroskamux ! queue ! tcpclientsink host={host} port={port}".format(srcText=srcText, 
+        pipelineText = "{srcText} ! queue ! matroskamux ! queue ! tcpclientsink host={host} port={port}".format(srcText=srcText, 
             host=self.host, 
             port=self.config.get(self.cam_id,"video_port"))
         
