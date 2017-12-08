@@ -345,7 +345,7 @@ class NetCamMasterServer(socketserver.TCPServer):
         )
 
     def server_close(self):
-        self.logger.debug('server_close')
+        print('server_close')
         return socketserver.TCPServer.server_close(self)
 
     def finish_request(self, request, client_address):
@@ -363,7 +363,7 @@ class NetCamMasterServer(socketserver.TCPServer):
         )
 
     def shutdown(self):
-        self.logger.debug('shutdown()')
+        print('shutdown()')
         return socketserver.TCPServer.shutdown(self)
 
 class NetCamMasterServiceDiscoveryService():
