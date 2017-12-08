@@ -73,52 +73,35 @@ class Util:
 
         return clock
 
-class GSTInstance(Thread):
-    pipeline = 0 
+class GSTInstance():
+    mainloop = 0
     def __init__(self, pipeline, clock=None):
-        Thread.__init__(self)
         print("Starting Gstremer local pipeline")
         self.pipeline = pipeline
         if clock != None:
             print("Using remote clock")
             self.pipeline.use_clock(clock)
-
-    def run(self):
         print("playing...")
         self.pipeline.set_state(Gst.State.PLAYING)
+        self.mainloop = GObject.MainLoop()
+        self.mainloop.run()
 
-        mainloop = GObject.MainLoop()
-        try:
-            mainloop.run()
-        except KeyboardInterrupt:
-            print('Terminated via Ctrl-C')
-            raise
-
+    def end(self):
         print('Shutting down...')
         self.pipeline.set_state(Gst.State.NULL)
-        print('Done.')
-        os._exit()
-        return
 
 
-class NetCamClient(Thread):
+class NetCamClient():
     host = 0
     camType = ''
     config = 0
     cam_id = 0
+    coreStreamer = 0
 
     def __init__(self,host,camType):
-        Thread.__init__(self)
         self.host=host
         self.camType = camType
         self.run()
-        
-    def get_self_id(self):
-        h = iter(hex(getnode())[2:].zfill(12))
-        return ":".join(i + next(h) for i in h)
-
-
-    def run(self):
         self.cam_id = self.get_self_id()
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.host, 5455))
@@ -132,6 +115,10 @@ class NetCamClient(Thread):
         self.start_video_stream()
         s.close()
         return
+        
+    def get_self_id(self):
+        h = iter(hex(getnode())[2:].zfill(12))
+        return ":".join(i + next(h) for i in h)      
 
     def get_pipeline(self):
         srcText = ''
@@ -159,17 +146,18 @@ class NetCamClient(Thread):
         server_caps = Util.get_server_config(self.host)
         core_clock = Util.get_core_clock(self.host)
         pipeline = self.get_pipeline()
-        coreStreamer = GSTInstance(pipeline, core_clock)
-        coreStreamer.daemon = True
-        coreStreamer.start()
-        while coreStreamer.is_alive():
-            time.sleep(5)
-        os._exit()
+        self.coreStreamer = GSTInstance(pipeline, core_clock)
+
+    def end(self):
+        self.coreStreamer.end()
+
 
 class NetCamClientHandler(socketserver.BaseRequestHandler):
 
     cam_config = 0
     cam_id = 0
+    coreStreamer = 0
+    
     def __init__(self, request, client_address, server):
         self.logger = logging.getLogger('EchoRequestHandler')
         self.logger.debug('__init__')
@@ -299,9 +287,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
 
         pipeline = Gst.parse_launch(pipelineText)
         core_clock = Util.get_core_clock("127.0.0.1")
-        coreStreamer = GSTInstance(pipeline,core_clock)
-        coreStreamer.daemon = True
-        coreStreamer.start()
+        self.coreStreamer = GSTInstance(pipeline,core_clock)
 
        
 
