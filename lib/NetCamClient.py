@@ -1,6 +1,6 @@
 from uuid import getnode
 import socket
-from gi.repository import Gst
+from gi.repository import Gst, GObject
 import configparser
 from lib.Util import Util
 from lib.GSTInstance import GSTInstance
