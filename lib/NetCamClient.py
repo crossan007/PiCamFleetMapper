@@ -13,10 +13,11 @@ class NetCamClient():
     cam_id = 0
     coreStreamer = 0
     shouldExit = False
+    shouldRestart = False
+    discoveryService = 0
 
-    def __init__(self,host,camType):
-        self.host=host
-        self.camType = camType
+    def __init__(self):
+        self.discoveryService = NetCamMasterServiceDiscoveryService()
         self.cam_id = self.get_self_id()
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.host, 5455))
@@ -28,11 +29,18 @@ class NetCamClient():
         self.config = configparser.ConfigParser()
         self.config.read_string(response)
         s.close()
-       
+
+
+    def wait_for_core(self):
+        core = self.discoveryService.wait_for_core()
+        self.address, self.port = core
+
     def run(self):
-        self.start_video_stream()
         while not self.shouldExit:
-            print("continuing NetCamClient loop")
+            self.wait_for_core()
+            while not self.shouldRestart:
+                self.start_video_stream()
+            print("Restarting NetCamClient")
             time.sleep(5)
 
         self.coreStreamer.end()
@@ -65,7 +73,7 @@ class NetCamClient():
         return pipeline
 
     def on_eos(self):
-        self.end()
+        self.shouldRestart = True
 
     def start_video_stream(self):
         server_caps = Util.get_server_config(self.host)
