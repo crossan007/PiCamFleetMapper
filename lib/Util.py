@@ -1,3 +1,6 @@
+from lib.connection import Connection
+from gi.repository import Gst, GstNet
+
 class Util:
     def get_server_config(server_address):
         # establish a synchronus connection to server

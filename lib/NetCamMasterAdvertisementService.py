@@ -1,3 +1,5 @@
+from threading import Thread
+import socket
 
 class NetCamMasterAdvertisementService(Thread):
     should_continue = 1 

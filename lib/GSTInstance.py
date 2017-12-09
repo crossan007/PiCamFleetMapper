@@ -1,3 +1,4 @@
+from gi.repository import Gst
 
 class GSTInstance():
     pipeline = 0

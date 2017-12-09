@@ -1,4 +1,7 @@
 
+import socketserver
+import logging
+
 class NetCamMasterServer(socketserver.TCPServer):
 
     allow_reuse_address = True

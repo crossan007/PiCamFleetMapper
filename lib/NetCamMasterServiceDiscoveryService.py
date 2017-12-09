@@ -1,4 +1,4 @@
-
+import socket
 
 class NetCamMasterServiceDiscoveryService():
     socket = 0

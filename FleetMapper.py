@@ -33,16 +33,12 @@ import gi
 gi.require_version('Gst', '1.0')
 gi.require_version('GstNet', '1.0')
 from gi.repository import Gst, GstNet, GObject
-import asyncore
-import socket
 
-from uuid import getnode
 import logging
 import os
 import configparser
 import io
 
-from lib.connection import Connection
 
 from lib.NetCamClient import NetCamClient
 from lib.Util import Util
