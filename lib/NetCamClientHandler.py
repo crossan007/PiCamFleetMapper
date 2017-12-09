@@ -101,9 +101,6 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         return virt_camera_angle_string, virt_audio_string, virt_muxes
 
     def setup_core_listener(self):
-
-      
-       
         server_caps = Util.get_server_config('127.0.0.1')
         virt_cam_angles, virt_audio_mixes, virt_muxes = self.get_virtual_camera_angles()
         virt_cam_angles = virt_cam_angles.format(video_caps = server_caps['videocaps'])
@@ -142,7 +139,12 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         pipeline = Gst.parse_launch(pipelineText)
         core_clock = Util.get_core_clock("127.0.0.1")
         self.coreStreamer = GSTInstance(pipeline,core_clock)
+        self.coreStreamer.pipeline.bus.add_signal_watch()
+        self.coreStreamer.pipeline.bus.connect("message::eos",self.on_eos)
+        self.coreStreamer.pipeline.bus.connect("message::error",self.on_eos)
 
+    def on_eos(self,bus,message):
+        self.coreStreamer.end()
 
     #def finish(self):
         #here we clean up the running coreStreamer thread
