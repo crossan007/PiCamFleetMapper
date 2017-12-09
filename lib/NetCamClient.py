@@ -51,6 +51,7 @@ class NetCamClient():
             while not self.shouldRestart:
                 time.sleep(5)
             print("Restarting NetCamClient")
+            shouldRestart = False
             
 
         
