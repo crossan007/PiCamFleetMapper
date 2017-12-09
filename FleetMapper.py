@@ -24,25 +24,15 @@ Camera mode operation
 """
 
 import argparse
-from pprint import pprint
-import sys
-import time
-from queue import Queue
+
 from threading import Thread
 import gi
 gi.require_version('Gst', '1.0')
 gi.require_version('GstNet', '1.0')
 from gi.repository import Gst, GstNet, GObject
-
-import logging
-import os
 import configparser
-import io
-
 
 from lib.NetCamClient import NetCamClient
-from lib.Util import Util
-from lib.GSTInstance import GSTInstance
 from lib.NetCamClientHandler import NetCamClientHandler
 from lib.NetCamMasterServer import NetCamMasterServer
 from lib.NetCamMasterServiceDiscoveryService import NetCamMasterServiceDiscoveryService
