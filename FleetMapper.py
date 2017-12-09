@@ -77,7 +77,7 @@ class GSTInstance():
     pipeline = 0
 
     def __init__(self, pipeline, clock=None):
-        print("Starting Gstremer local pipeline")
+        print("Starting GSTInstance local pipeline")
         self.pipeline = pipeline
         if clock != None:
             print("Using remote clock")
@@ -86,7 +86,7 @@ class GSTInstance():
         self.pipeline.set_state(Gst.State.PLAYING)
 
     def end(self):
-        print('Shutting down...')
+        print('Shutting down GSTInstance')
         self.pipeline.set_state(Gst.State.NULL)
 
 
@@ -114,6 +114,7 @@ class NetCamClient():
         self.start_video_stream()
         s.close()
         while not self.shouldExit:
+            print("continuing NetCamClient loop")
             time.sleep(5)
 
         self.coreStreamer.end()
