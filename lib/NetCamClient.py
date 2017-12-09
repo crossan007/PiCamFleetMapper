@@ -75,7 +75,9 @@ class NetCamClient():
 
         return pipeline
 
-    def on_eos(self):
+
+    def on_eos(self,bus,message):
+        print(message)
         self.shouldRestart = True
 
     def start_video_stream(self):
@@ -83,6 +85,7 @@ class NetCamClient():
         core_clock = Util.get_core_clock(self.host)
         pipeline = self.get_pipeline()
         self.coreStreamer = GSTInstance(pipeline, core_clock)
+        self.coreStreamer.pipeline.bus.add_signal_watch()
         self.coreStreamer.pipeline.bus.connect("message::eos",self.on_eos)
         self.coreStreamer.pipeline.bus.connect("message::error",self.on_eos)
 
