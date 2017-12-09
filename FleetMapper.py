@@ -35,7 +35,6 @@ import configparser
 from lib.NetCamClient import NetCamClient
 from lib.NetCamClientHandler import NetCamClientHandler
 from lib.NetCamMasterServer import NetCamMasterServer
-from lib.NetCamMasterServiceDiscoveryService import NetCamMasterServiceDiscoveryService
 from lib.NetCamMasterAdvertisementService import NetCamMasterAdvertisementService
 
 def get_args():
