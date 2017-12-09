@@ -146,7 +146,7 @@ class NetCamClient():
         return pipeline
 
     def on_eos(self):
-        self.shouldExit = True
+        self.end()
 
     def start_video_stream(self):
         server_caps = Util.get_server_config(self.host)
@@ -156,6 +156,8 @@ class NetCamClient():
         self.coreStreamer.pipeline.bus.connect("message::eos",self.on_eos)
         self.coreStreamer.pipeline.bus.connect("message::error",self.on_eos)
 
+    def end(self):
+        self.shouldExit = True
         
 
 
@@ -455,13 +457,15 @@ def exit_master():
 
 
     if args.camera:
-        camera.end()
+        print("Cleaning Up client")
+        camClient.end()
+        print("Exiting")
 
     mainloop.quit()
 
 
 def main():
-    global args, mainloop, t, master, myserver, camera
+    global args, mainloop, t, master, myserver, camClient
     Gst.init([])
     if args.master:
         master = NetCamMasterAdvertisementService(args.ip_address,54545)
