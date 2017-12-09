@@ -27,8 +27,10 @@ class NetCamClient():
         print(response)
         self.config = configparser.ConfigParser()
         self.config.read_string(response)
-        self.start_video_stream()
         s.close()
+       
+    def run(self):
+        self.start_video_stream()
         while not self.shouldExit:
             print("continuing NetCamClient loop")
             time.sleep(5)
