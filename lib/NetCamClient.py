@@ -13,10 +13,11 @@ class NetCamClient():
     cam_id = 0
     coreStreamer = 0
     shouldExit = False
-    shouldRestart = False
+    mainloop = 0
 
     def __init__(self):
         self.cam_id = self.get_self_id()
+        self.mainloop =  GObject.MainLoop()
 
     def wait_for_core(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -48,14 +49,8 @@ class NetCamClient():
         while not self.shouldExit:
             self.initalize_video()
             self.start_video_stream()
-            while not self.shouldRestart:
-                time.sleep(5)
+            self.mainloop.run()
             print("Restarting NetCamClient")
-            shouldRestart = False
-            
-
-        
-
         
     def get_self_id(self):
         h = iter(hex(getnode())[2:].zfill(12))
@@ -87,7 +82,7 @@ class NetCamClient():
     def on_eos(self,bus,message):
         print(message)
         self.coreStreamer.end()
-        self.shouldRestart = True
+        self.mainloop.quit()
 
     def start_video_stream(self):
         server_caps = Util.get_server_config(self.host)
@@ -100,4 +95,5 @@ class NetCamClient():
 
     def end(self):
         self.shouldExit = True
+        self.mainloop.quit()
         
