@@ -40,8 +40,9 @@ class NetCamClient():
     def run(self):
         while not self.shouldExit:
             self.wait_for_core()
+            self.start_video_stream()
             while not self.shouldRestart:
-                self.start_video_stream()
+                time.sleep(5)
             print("Restarting NetCamClient")
             time.sleep(5)
 
