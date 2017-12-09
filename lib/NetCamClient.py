@@ -35,7 +35,7 @@ class NetCamClient():
 
     def wait_for_core(self):
         core = self.discoveryService.wait_for_core()
-        self.address, self.port = core
+        self.host, self.port = core
 
     def run(self):
         while not self.shouldExit:
