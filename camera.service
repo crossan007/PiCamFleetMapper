@@ -1,17 +1,10 @@
 [Unit]
-Description = camera pi
+Description = PiCamFleetMapper
 After=network.target
 
 [Service]
 Type = simple
 ExecStart = /home/pi/PiCamFleetMapper/FleetMapper.py --camera
-#ExecStartPre = /usr/bin/v4l2-ctl --set-ctrl=exposure_auto=1
-#ExecStartPre = /usr/bin/v4l2-ctl --set-ctrl=focus_auto=0
-#ExecStartPre = /usr/bin/v4l2-ctl --set-ctrl=focus_absolute=0
-#ExecStartPre = /usr/bin/v4l2-ctl --set-ctrl=exposure_auto_priority=0
-#ExecStartPre = /usr/bin/v4l2-ctl --set-ctrl=exposure_absolute=630
-#ExecStartPre = /usr/bin/v4l2-ctl --set-ctrl=sharpness=150
-Restart = always
 RestartSec = 1s
 StartLimitInterval = 0
 
