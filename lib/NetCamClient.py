@@ -5,7 +5,6 @@ import configparser
 from lib.Util import Util
 from lib.GSTInstance import GSTInstance
 import time
-from lib.NetCamMasterServiceDiscoveryService import NetCamMasterServiceDiscoveryService
 
 class NetCamClient():
     host = 0
@@ -15,14 +14,24 @@ class NetCamClient():
     coreStreamer = 0
     shouldExit = False
     shouldRestart = False
-    discoveryService = 0
 
     def __init__(self):
-        self.discoveryService = NetCamMasterServiceDiscoveryService()
         self.cam_id = self.get_self_id()
 
+    def wait_for_core(self):
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.socket.bind(('', 54545))
+        print("Waiting for service announcement")
+        while True:
+            data, addr = self.socket.recvfrom(2048)
+            print("Core found: ", addr)
+            break
+        self.socket.close()
+        return addr
+
     def initalize_video(self):
-        core = self.discoveryService.wait_for_core()
+        core = self.wait_for_core()
         self.host, self.port = core
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.host, 5455))
