@@ -20,9 +20,8 @@ class NetCamClient():
     def __init__(self):
         self.discoveryService = NetCamMasterServiceDiscoveryService()
         self.cam_id = self.get_self_id()
-        self.wait_for_core()
 
-    def wait_for_core(self):
+    def initalize_video(self):
         core = self.discoveryService.wait_for_core()
         self.host, self.port = core
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -38,7 +37,7 @@ class NetCamClient():
 
     def run(self):
         while not self.shouldExit:
-            self.wait_for_core()
+            self.initalize_video()
             self.start_video_stream()
             while not self.shouldRestart:
                 time.sleep(5)
