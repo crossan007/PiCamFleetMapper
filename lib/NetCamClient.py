@@ -47,9 +47,12 @@ class NetCamClient():
 
     def run(self):
         while not self.shouldExit:
-            self.initalize_video()
-            self.start_video_stream()
-            self.mainloop.run()
+            try:
+                self.initalize_video()
+                self.start_video_stream()
+                self.mainloop.run()
+            except:
+                pass
             print("Restarting NetCamClient")
         
     def get_self_id(self):
