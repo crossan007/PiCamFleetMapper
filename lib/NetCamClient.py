@@ -19,6 +19,7 @@ class NetCamClient():
 
     def __init__(self):
         self.discoveryService = NetCamMasterServiceDiscoveryService()
+        self.wait_for_core()
         self.cam_id = self.get_self_id()
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.host, 5455))
