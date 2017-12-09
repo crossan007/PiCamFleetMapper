@@ -70,9 +70,10 @@ t = 0
 master = 0
 myserver = 0
 camera = 0
+shouldExit = False
 
 def exit_master():
-    global args, mainloop, t, master, myserver, camera
+    global args, mainloop, t, master, myserver, camera, shouldExit
     print("exit_master invoked")
     if args.master:
         print("Cleaning Up master")
@@ -85,13 +86,15 @@ def exit_master():
     if args.camera:
         print("Cleaning Up client")
         camClient.end()
+        shouldExit = True
         print("Exiting")
+
 
     mainloop.quit()
 
 
 def main():
-    global args, mainloop, t, master, myserver, camClient
+    global args, mainloop, t, master, myserver, camClient, shouldExit
     Gst.init([])
     if args.master:
         master = NetCamMasterAdvertisementService(args.ip_address,54545)
@@ -104,7 +107,7 @@ def main():
 
     if args.camera:
         discoveryService = NetCamMasterServiceDiscoveryService()
-        while True:
+        while not shouldExit:
             core = discoveryService.wait_for_core()
             address, port = core
             camClient = NetCamClient(address,args.camera)
