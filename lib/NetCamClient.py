@@ -44,9 +44,9 @@ class NetCamClient():
             while not self.shouldRestart:
                 time.sleep(5)
             print("Restarting NetCamClient")
-            time.sleep(5)
+            self.coreStreamer.end()
 
-        self.coreStreamer.end()
+        
 
         
     def get_self_id(self):
