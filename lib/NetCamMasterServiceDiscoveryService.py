@@ -13,5 +13,6 @@ class NetCamMasterServiceDiscoveryService():
         while True:
             data, addr = self.socket.recvfrom(2048)
             print("Core found: ", addr)
+            self.socket.close()
             return addr
             break

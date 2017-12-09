@@ -19,8 +19,12 @@ class NetCamClient():
 
     def __init__(self):
         self.discoveryService = NetCamMasterServiceDiscoveryService()
-        self.wait_for_core()
         self.cam_id = self.get_self_id()
+        self.wait_for_core()
+
+    def wait_for_core(self):
+        core = self.discoveryService.wait_for_core()
+        self.host, self.port = core
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((self.host, 5455))
         message = "{mac}".format(mac=self.cam_id)
@@ -32,11 +36,6 @@ class NetCamClient():
         self.config.read_string(response)
         s.close()
 
-
-    def wait_for_core(self):
-        core = self.discoveryService.wait_for_core()
-        self.host, self.port = core
-
     def run(self):
         while not self.shouldExit:
             self.wait_for_core()
@@ -44,7 +43,7 @@ class NetCamClient():
             while not self.shouldRestart:
                 time.sleep(5)
             print("Restarting NetCamClient")
-            self.coreStreamer.end()
+            
 
         
 
@@ -78,6 +77,7 @@ class NetCamClient():
 
     def on_eos(self,bus,message):
         print(message)
+        self.coreStreamer.end()
         self.shouldRestart = True
 
     def start_video_stream(self):
