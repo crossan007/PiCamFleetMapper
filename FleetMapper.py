@@ -35,7 +35,7 @@ gi.require_version('GstNet', '1.0')
 from gi.repository import Gst, GstNet, GObject
 import asyncore
 import socket
-import socketserver
+
 from uuid import getnode
 import logging
 import os
