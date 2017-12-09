@@ -108,12 +108,13 @@ def main():
     if args.camera:
         discoveryService = NetCamMasterServiceDiscoveryService()
         while not shouldExit:
-            core = discoveryService.wait_for_core()
-            address, port = core
-            camClient = NetCamClient(address,args.camera)
-            t = Thread(target=camClient.run)
-            t.daemon = True
-            t.start()
+            #core = discoveryService.wait_for_core()
+            #address, port = core
+            #camClient = NetCamClient(address,args.camera)
+            #t = Thread(target=camClient.run)
+            #t.daemon = True
+            #t.start()
+            print("test cam client")
 
 
 
