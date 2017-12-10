@@ -3,14 +3,14 @@ name = Main
 core_port = 10002
 video_port = 20000
 offset = 0
-client_src = v4l2src extra-controls="c,gain=255,exposure_auto=1,focus_auto=0,focus_absolute=0,exposure_auto_priority=0,exposure_absolute=200,sharpness=150"  do-timestamp=true ! jpegparse ! videorate ! image/jpeg,framerate=30/1
+client_src = v4l2src extra-controls="c,gain=100,exposure_auto=1,focus_auto=0,focus_absolute=0,exposure_auto_priority=0,exposure_absolute=200,sharpness=110"  do-timestamp=true ! jpegparse ! videorate ! image/jpeg,framerate=30/1
 server_custom_pipe = videoflip method=rotate-180 !
-virtual_camera_angles = stage,front,stage-left,stage-right
-decode= jpegdec
+virtual_camera_angles = stage
+decode = jpegdec
 
 [stage]
 core_port = 10003
-server_custom_pipe = videocrop top=0 bottom=250 left=125 right=200 !
+server_custom_pipe = videocrop top=0 bottom=220 left=152 right=233 !
 
 [front]
 core_port = 10004
@@ -29,8 +29,19 @@ name = PiZero
 core_port = 10008
 video_port = 20001
 offset = -900
-client_src = rpicamsrc name=videosrc bitrate=800000 do-timestamp=true ! h264parse ! video/x-h264,framerate=30/1,width=1280,height=720 
+client_src = rpicamsrc name=videosrc keyframe-interval=10 shutter-speed=0 iso=200 drc=0 exposure-mode=1 metering-mode=1 awb_mode=6 bitrate=0 quantisation-parameter=22 do-timestamp=true ! h264parse ! video/x-h264,framerate=30/1,width=1280,height=720
 server_custom_pipe = 
 virtual_camera_angles = 
-decode= avdec_h264
-#decode=decodebin
+decode = avdec_h264
+
+[c7:ed:c9:ed:d1:3d]
+
+[b8:27:eb:ee:63:f2]
+name = PiZero
+core_port = 10007
+video_port = 20002
+offset = -900
+client_src = rpicamsrc name=videosrc keyframe-interval=10 shutter-speed=0 iso=200 drc=0 exposure-mode=1 metering-mode=1 awb_mode=6 bitrate=0 quantisation-parameter=22 do-timestamp=true ! h264parse ! video/x-h264,framerate=30/1,width=1280,height=720
+server_custom_pipe = 
+virtual_camera_angles = 
+decode = avdec_h264
