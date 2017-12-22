@@ -109,6 +109,8 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
             tcpserversrc host=0.0.0.0 port={video_port} ! matroskademux name=d ! {decode}  !
 
             videoconvert ! videorate ! videoscale ! {video_caps} ! 
+
+            identity name=videosrc !
             
             {server_custom_pipe} {virt_cam_angles} mainmux.
 
@@ -137,6 +139,12 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         print(pipelineText)
 
         pipeline = Gst.parse_launch(pipelineText)
+        
+        offset = int(self.cam_config.get(self.cam_id,"offset")) * NS_TO_MS
+        if offset:
+            print("Using offset: {offset}".format(offset=offset))
+            pipeline.get_by_name("videosrc").get_static_pad("src").set_offset(offset)
+
         core_clock = Util.get_core_clock("127.0.0.1")
         self.coreStreamer = GSTInstance(pipeline,core_clock)
         self.coreStreamer.pipeline.bus.add_signal_watch()
