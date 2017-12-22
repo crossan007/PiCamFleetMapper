@@ -27,4 +27,4 @@ Allen and Heath QU32 (USB) --(alsasrc)---->   [VoctoCore]   <<----(ximagesrc) --
    Transport from Pi to Core is in a Matroska container, and can be any codec.  The above pipeline uses h264 for rpicamsrc, and MJPEG for v4l2src.
 
 ```
-![img/voctogui.png]
+!(img/voctogui.png)
