@@ -61,8 +61,6 @@ class NetCamClient():
 
     def get_pipeline(self):
         srcText = ''
-        NS_TO_MS = 1000000
-        offset = 0 
 
         srcText = self.config.get(self.cam_id,"client_src").strip()
 

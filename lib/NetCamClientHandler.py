@@ -101,6 +101,8 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         return virt_camera_angle_string, virt_audio_string, virt_muxes
 
     def setup_core_listener(self):
+        NS_TO_MS = 1000000
+        offset = 0 
         server_caps = Util.get_server_config('127.0.0.1')
         virt_cam_angles, virt_audio_mixes, virt_muxes = self.get_virtual_camera_angles()
         virt_cam_angles = virt_cam_angles.format(video_caps = server_caps['videocaps'])
