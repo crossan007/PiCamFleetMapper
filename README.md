@@ -43,7 +43,23 @@ sudo systemctl enable camera.service
 ```
 
 
-5. Reboot the pi.  The camera should come online automatically if there a running master
+5. Reboot the pi.  
+
+6. (Once per device) Configure the connection to core
+
+    The first time a camera locates the master, it will attempt to download its configuration.  If there is no config entry corresponding with the camera's MAC address, an empty one will be added to remotes.ini.  Be sure to configure the camera.  Below is a sample config:
+
+```
+[b8:27:eb:24:b0:41]
+name = PiThreeMobile-wifi
+core_port = 10000
+video_port = 20002
+offset = -1900
+client_src = rpicamsrc name=videosrc keyframe-interval=10 shutter-speed=0 iso=200 drc=0 exposure-mode=1 metering-mode=1 awb_mode=6 bitrate=0 quantisation-parameter=22 do-timestamp=true ! h264parse ! video/x-h264,framerate=30/1,width=1280,height=720
+server_custom_pipe = videoflip method=rotate-180 !
+virtual_camera_angles = 
+decode = decodebin
+```
 
 # Example Topology
 ```
