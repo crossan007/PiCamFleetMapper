@@ -56,8 +56,25 @@ class NetCamClient():
             print("Restarting NetCamClient")
         
     def get_self_id(self):
-        h = iter(hex(getnode())[2:].zfill(12))
-        return ":".join(i + next(h) for i in h)      
+        """
+            returns the ID of this camera
+            after first execution, the ID should persist to a file
+        """
+        
+        config = configparser.ConfigParser()
+        config.read("camera.ini")
+        camid = ""
+        if config.has_section("camera"):
+            camid = config.get("camera","id")
+        else:
+            config.add_section("camera")
+
+        if (camid == ""):
+            h = iter(hex(getnode())[2:].zfill(12))
+            camid = ":".join(i + next(h) for i in h)
+            config.set("camera","id",camid)
+        
+        return camid
 
     def get_pipeline(self):
         srcText = ''
