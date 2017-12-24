@@ -60,7 +60,7 @@ class NetCamClient():
             returns the ID of this camera
             after first execution, the ID should persist to a file
         """
-        
+
         config = configparser.ConfigParser()
         config.read("camera.ini")
         camid = ""
@@ -73,6 +73,7 @@ class NetCamClient():
             h = iter(hex(getnode())[2:].zfill(12))
             camid = ":".join(i + next(h) for i in h)
             config.set("camera","id",camid)
+            config.write(configfile)
         
         return camid
 
