@@ -60,9 +60,10 @@ class NetCamClient():
             returns the ID of this camera
             after first execution, the ID should persist to a file
         """
+        configfile="camera.ini"
 
         config = configparser.ConfigParser()
-        config.read("camera.ini")
+        config.read(configfile)
         camid = ""
         if config.has_section("camera"):
             camid = config.get("camera","id")
