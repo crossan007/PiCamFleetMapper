@@ -67,6 +67,7 @@ class NetCamClient():
         camid = ""
         if config.has_section("camera"):
             camid = config.get("camera","id")
+            print("Found CamID in camera.ini: " + camid)
         else:
             config.add_section("camera")
 
@@ -76,6 +77,7 @@ class NetCamClient():
             config.set("camera","id",camid)
             with open(configfilepath, 'w') as configfile:
                 config.write(configfile)
+            print("Generated CamID and wrote to camera.ini: " + camid)
         
         return camid
 
