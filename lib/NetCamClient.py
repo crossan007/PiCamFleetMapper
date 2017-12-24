@@ -60,7 +60,7 @@ class NetCamClient():
             returns the ID of this camera
             after first execution, the ID should persist to a file
         """
-        configfilepath="camera.ini"
+        configfilepath="/etc/camera.ini"
 
         config = configparser.ConfigParser()
         config.read(configfilepath)
