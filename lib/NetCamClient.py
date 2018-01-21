@@ -62,6 +62,7 @@ class NetCamClient():
             after first execution, the ID should persist to a file
         """
         config_file="/etc/camera.json"
+        camid = ""
         if os.path.isfile(config_file):
             config = json.load(open(config_file))
             if config['camera']:
