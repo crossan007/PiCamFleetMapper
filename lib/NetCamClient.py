@@ -70,6 +70,7 @@ class NetCamClient():
         else:
             config = {}
             config['camera'] = {}
+            config['camera']['id'] = ""
 
         if (config['camera']['id'] == ""):
             h = iter(hex(getnode())[2:].zfill(12))
