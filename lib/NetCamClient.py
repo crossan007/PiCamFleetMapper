@@ -83,7 +83,7 @@ class NetCamClient():
 
         print("Calculating pipeline")
         srcText = ''
-        srcText = self.config["client_src"].strip()
+        srcText = self.config["client_src"]
 
         pipelineText = "{srcText} ! queue ! matroskamux ! queue ! tcpclientsink host={host} port={port}".format(srcText=srcText, 
             host=self.host, 
