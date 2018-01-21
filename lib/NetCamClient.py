@@ -63,25 +63,22 @@ class NetCamClient():
             after first execution, the ID should persist to a file
         """
         config_file="/etc/camera.json"
-        camid = ""
         if os.path.isfile(config_file):
             config = json.load(open(config_file))
-            if config['camera']:
-                camid = config["camera"]["id"]
-                print("Found CamID in camera.ini: " + camid)
+            if config['camera']['id']:
+                print("Found CamID in camera.ini: " + config['camera']['id'])
         else:
             config = {}
             config['camera'] = {}
 
-        if (camid == ""):
+        if (config['camera']['id'] == ""):
             h = iter(hex(getnode())[2:].zfill(12))
-            camid = ":".join(i + next(h) for i in h)
-            config["camera"]["id"] = camid
-            with open(config_file, 'w') as configfile:
-                json.dumps(config,configfile)
-            print("Generated CamID and wrote to camera.ini: " + camid)
+            config["camera"]["id"] = ":".join(i + next(h) for i in h)
+            with open(config_file, 'w') as out_config_file:
+                json.dump(config,out_config_file)
+            print("Generated CamID and wrote to camera.ini: " +  config["camera"]["id"])
         
-        return camid
+        return  config["camera"]["id"]
 
     def get_pipeline(self):
         srcText = ''
