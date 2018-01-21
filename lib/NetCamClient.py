@@ -60,23 +60,24 @@ class NetCamClient():
             returns the ID of this camera
             after first execution, the ID should persist to a file
         """
-        configfilepath="/etc/camera.ini"
-
-        config = configparser.ConfigParser()
-        config.read(configfilepath)
-        camid = ""
-        if config.has_section("camera"):
-            camid = config.get("camera","id")
-            print("Found CamID in camera.ini: " + camid)
+        config_file="/etc/camera.json"
+        if os.path.isfile(config_file):
+            config = json.load(open(config_file))
         else:
-            config.add_section("camera")
+            config = {}
+            config['camera'] = {}
+
+        if config['camera"']:
+            camid = config["camera"]["id"]
+            print("Found CamID in camera.ini: " + camid)
+       
 
         if (camid == ""):
             h = iter(hex(getnode())[2:].zfill(12))
             camid = ":".join(i + next(h) for i in h)
-            config.set("camera","id",camid)
-            with open(configfilepath, 'w') as configfile:
-                config.write(configfile)
+            config["camera"]["id"] = camid
+            with open(config_file, 'w') as configfile:
+                json.dumps(config,configfile)
             print("Generated CamID and wrote to camera.ini: " + camid)
         
         return camid
