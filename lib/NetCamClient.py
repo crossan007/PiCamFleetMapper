@@ -18,7 +18,8 @@ class NetCamClient():
     mainloop = 0
 
     def __init__(self):
-        self.cam_id = self.get_self_id()
+
+        self.configure()
         self.mainloop =  GObject.MainLoop()
 
     def wait_for_core(self):
@@ -55,29 +56,27 @@ class NetCamClient():
                 pass
             print("Restarting NetCamClient")
         
-    def get_self_id(self):
+    def configure(self):
         """
-            returns the ID of this camera
-            after first execution, the ID should persist to a file
+            
         """
         config_file="/etc/camera.json"
         if os.path.isfile(config_file):
-            config = json.load(open(config_file))
-            if config['camera']['id']:
-                print("Found CamID in camera.ini: " + config['camera']['id'])
+            self.config = json.load(open(config_file))
+            if self.config['camera']['id']:
+                print("Found CamID in camera.ini: " + self.config['camera']['id'])
         else:
-            config = {}
-            config['camera'] = {}
-            config['camera']['id'] = ""
+            self.config = {}
+            self.config['camera'] = {}
+            self.config['camera']['id'] = ""
 
-        if (config['camera']['id'] == ""):
+        if (self.config['camera']['id'] == ""):
             h = iter(hex(getnode())[2:].zfill(12))
-            config["camera"]["id"] = ":".join(i + next(h) for i in h)
+            self.config["camera"]["id"] = ":".join(i + next(h) for i in h)
             with open(config_file, 'w') as out_config_file:
-                json.dump(config,out_config_file)
-            print("Generated CamID and wrote to camera.ini: " +  config["camera"]["id"])
-        
-        return  config["camera"]["id"]
+                json.dump(self.config,out_config_file)
+            print("Generated CamID and wrote to camera.ini: " +  self.config["camera"]["id"])
+        return
 
     def get_pipeline(self):
 
