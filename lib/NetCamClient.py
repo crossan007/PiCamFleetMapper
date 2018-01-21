@@ -5,6 +5,7 @@ import configparser
 from lib.Util import Util
 from lib.GSTInstance import GSTInstance
 import time
+import os
 
 class NetCamClient():
     host = 0

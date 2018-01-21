@@ -39,6 +39,32 @@ from lib.NetCamMasterAdvertisementService import NetCamMasterAdvertisementServic
 
 import os
 
+
+def get_args():
+    parser = argparse.ArgumentParser(
+            description='''IP connected camera fleet manager for VoctoCore
+            With Net-time support.
+            Gst caps are retrieved from the server.
+            ''')
+
+    parser.add_argument(
+        '-m', '--master', action='store_true',
+        help="Use this when running on the core server to receive video streams")
+
+    parser.add_argument(
+        '-c', '--camera', action='store_true',
+        help="Use this when capturing from a device.  Automatically finds core, downloads config, and streams on live")
+
+    parser.add_argument(
+        '-a', '--ip-address', action="store",
+        default="0.0.0.0",
+        help="The IP address to which to bind"
+    )
+
+    args = parser.parse_args()
+
+    return args
+
 config = 0
 mainloop = 0
 t = 0 
@@ -69,17 +95,13 @@ def exit_master():
 
 
 def main():
-    global config, mainloop, t, master, myserver, camClient, shouldExit
+    global args, config, mainloop, t, master, myserver, camClient, shouldExit
     
-    config_file = "config.json"
-    if os.path.isfile(config_file):
-        config = json.load(open(config_file))
-    else:
-        config = {}
-        config['applicationMode'] = "camera"
-
     Gst.init([])
-    if config['applicationMode'] == "master":
+    if args.master:
+        config_file = "config.json"
+        if os.path.isfile(config_file):
+            config = json.load(open(config_file))
         print("Running as master")
         master = NetCamMasterAdvertisementService(config['listenIP'],config['advertisePort'])
         master.daemon = True
@@ -89,7 +111,7 @@ def main():
         t.daemon = True  # don't allow this thread to capture the keyboard interrupt
         t.start()
 
-    if config['applicationMode'] == "camera":
+    if args.camera:
         print("Running as camera")
         camClient = NetCamClient()
         t = Thread(target=camClient.run)
@@ -102,6 +124,7 @@ def main():
 if __name__ == '__main__':
     mainloop = GObject.MainLoop()
     try:
+        args = get_args()
         main()
         mainloop.run()
     except KeyboardInterrupt:
