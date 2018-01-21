@@ -76,7 +76,7 @@ def main():
         config = json.load(open(config_file))
     else:
         config = {}
-        config['applicationMode'] = camera
+        config['applicationMode'] = "camera"
 
     Gst.init([])
     if config['applicationMode'] == "master":
