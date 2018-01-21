@@ -42,7 +42,6 @@ class NetCamClient():
         mesbytes = bytes(message,'UTF-8')
         len_sent = s.send(mesbytes)
         response = s.recv(2048).decode('UTF-8')
-        print(response)
         self.config = configparser.ConfigParser()
         self.config.read_string(response)
         s.close()
