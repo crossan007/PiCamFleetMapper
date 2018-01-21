@@ -64,14 +64,12 @@ class NetCamClient():
         config_file="/etc/camera.json"
         if os.path.isfile(config_file):
             config = json.load(open(config_file))
+            if config['camera']:
+                camid = config["camera"]["id"]
+                print("Found CamID in camera.ini: " + camid)
         else:
             config = {}
             config['camera'] = {}
-
-        if config['camera"']:
-            camid = config["camera"]["id"]
-            print("Found CamID in camera.ini: " + camid)
-       
 
         if (camid == ""):
             h = iter(hex(getnode())[2:].zfill(12))
