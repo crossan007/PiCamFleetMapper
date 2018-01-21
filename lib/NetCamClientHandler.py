@@ -106,6 +106,9 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         server_caps = Util.get_server_config('127.0.0.1')
         virt_cam_angles, virt_audio_mixes, virt_muxes = self.get_virtual_camera_angles()
         virt_cam_angles = virt_cam_angles.format(video_caps = server_caps['videocaps'])
+        audiosrc="audiotestsrc"
+        if (self.cam_config.get(self.cam_id,"hasAudio") == "true"):
+            audiosrc="d."
 
         pipelineText = """
             tcpserversrc host=0.0.0.0 port={video_port} ! matroskademux name=d ! {decode}  !
@@ -116,7 +119,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
             
             {server_custom_pipe} {virt_cam_angles} mainmux.
 
-            audiotestsrc ! audiorate ! 
+            {audiosrc} ! audiorate ! 
             {audio_caps} ! tee name=audiosrc ! queue ! mainmux.
 
             {virt_audio_mixes}
@@ -135,7 +138,8 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
                 virt_cam_angles = virt_cam_angles,
                 virt_audio_mixes = virt_audio_mixes,
                 virt_muxes = virt_muxes,
-                decode=self.cam_config.get(self.cam_id,"decode")
+                decode=self.cam_config.get(self.cam_id,"decode"),
+                audiosrc=audiosrc
                 )
 
         print(pipelineText)
