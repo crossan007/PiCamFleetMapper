@@ -84,7 +84,7 @@ def main():
         master = NetCamMasterAdvertisementService(config['listenIP'],config['advertisePort'])
         master.daemon = True
         master.start()
-        myserver = NetCamMasterServer((config['listenIP'],config['listenPort']),NetCamClientHandler)
+        myserver = NetCamMasterServer((config['listenIP'],config['listenPort']),NetCamClientHandler, config['sources'])
         t =Thread(target=myserver.serve_forever)
         t.daemon = True  # don't allow this thread to capture the keyboard interrupt
         t.start()
