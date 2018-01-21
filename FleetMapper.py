@@ -27,42 +27,16 @@ import argparse
 
 from threading import Thread
 import gi
+import json
 gi.require_version('Gst', '1.0')
 gi.require_version('GstNet', '1.0')
 from gi.repository import Gst, GstNet, GObject
-import configparser
 
 from lib.NetCamClient import NetCamClient
 from lib.NetCamClientHandler import NetCamClientHandler
 from lib.NetCamMasterServer import NetCamMasterServer
 from lib.NetCamMasterAdvertisementService import NetCamMasterAdvertisementService
 
-def get_args():
-    parser = argparse.ArgumentParser(
-            description='''IP connected camera fleet manager for VoctoCore
-            With Net-time support.
-            Gst caps are retrieved from the server.
-            ''')
-
-    parser.add_argument(
-        '-m', '--master', action='store_true',
-        help="Use this when running on the core server to receive video streams")
-
-    parser.add_argument(
-        '-c', '--camera', action='store_true',
-        help="Use this when capturing from a device.  Automatically finds core, downloads config, and streams on live")
-
-    parser.add_argument(
-        '-a', '--ip-address', action="store",
-        default="0.0.0.0",
-        help="The IP address to which to bind"
-    )
-
-    args = parser.parse_args()
-
-    return args
-
-args = 0 
 config = 0
 mainloop = 0
 t = 0 
@@ -72,9 +46,9 @@ camera = 0
 shouldExit = False
 
 def exit_master():
-    global args, mainloop, t, master, myserver, camera, shouldExit
+    global config, mainloop, t, master, myserver, camera, shouldExit
     print("exit_master invoked")
-    if args.master:
+    if config['applicationMode'] == "master":
         print("Cleaning Up master")
         myserver.shutdown()
         myserver.server_close()
@@ -82,7 +56,7 @@ def exit_master():
         print("Exiting")
 
 
-    if args.camera:
+    if config['applicationMode'] == "camera":
         print("Cleaning Up client")
         camClient.end()
         shouldExit = True
@@ -93,18 +67,21 @@ def exit_master():
 
 
 def main():
-    global args, mainloop, t, master, myserver, camClient, shouldExit
+    global config, mainloop, t, master, myserver, camClient, shouldExit
+    config = json.load(open("config.json"))
     Gst.init([])
-    if args.master:
-        master = NetCamMasterAdvertisementService(args.ip_address,54545)
+    if config['applicationMode'] == "master":
+        print("Running as master")
+        master = NetCamMasterAdvertisementService(config['listenIP'],config['advertisePort'])
         master.daemon = True
         master.start()
-        myserver = NetCamMasterServer((args.ip_address,5455),NetCamClientHandler)
+        myserver = NetCamMasterServer((config['listenIP'],config['listenPort']),NetCamClientHandler)
         t =Thread(target=myserver.serve_forever)
         t.daemon = True  # don't allow this thread to capture the keyboard interrupt
         t.start()
 
-    if args.camera:
+    if config['applicationMode'] == "camera":
+        print("Running as camera")
         camClient = NetCamClient()
         t = Thread(target=camClient.run)
         t.daemon = True
@@ -116,7 +93,6 @@ def main():
 if __name__ == '__main__':
     mainloop = GObject.MainLoop()
     try:
-        args = get_args()
         main()
         mainloop.run()
     except KeyboardInterrupt:
