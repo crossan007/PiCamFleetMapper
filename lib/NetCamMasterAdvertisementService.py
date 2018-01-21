@@ -3,9 +3,6 @@ import socket
 import time
 
 class NetCamMasterAdvertisementService(Thread):
-    advertiseAddress = ""
-    advertisePort = 0
-    should_continue = 1 
 
     def __init__(self,listen_address,port):
         self.advertiseAddress = listen_address
@@ -15,6 +12,7 @@ class NetCamMasterAdvertisementService(Thread):
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind((listen_address,self.advertisePort))
+        self.should_continue = 1 
 
     def run(self):
         while self.should_continue:

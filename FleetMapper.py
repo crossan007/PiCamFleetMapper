@@ -37,6 +37,8 @@ from lib.NetCamClientHandler import NetCamClientHandler
 from lib.NetCamMasterServer import NetCamMasterServer
 from lib.NetCamMasterAdvertisementService import NetCamMasterAdvertisementService
 
+import os
+
 config = 0
 mainloop = 0
 t = 0 
@@ -68,7 +70,13 @@ def exit_master():
 
 def main():
     global config, mainloop, t, master, myserver, camClient, shouldExit
-    config = json.load(open("config.json"))
+    
+    config_file = "config.json"
+    if os.path.isfile(config_file):
+        config = json.load(open(config_file))
+    else:
+        config['applicationMode'] = camera
+
     Gst.init([])
     if config['applicationMode'] == "master":
         print("Running as master")
