@@ -75,6 +75,7 @@ def main():
     if os.path.isfile(config_file):
         config = json.load(open(config_file))
     else:
+        config = {}
         config['applicationMode'] = camera
 
     Gst.init([])
