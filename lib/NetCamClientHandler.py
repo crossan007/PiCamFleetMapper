@@ -108,24 +108,11 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         virt_cam_angles = virt_cam_angles.format(video_caps = server_caps['videocaps'])
 
         pipelineText = """
-            tcpserversrc host=0.0.0.0 port={video_port} ! matroskademux name=d ! {decode}  !
+            tcpserversrc host=0.0.0.0 port={video_port} ! matroskademux name=d ! {decode} !
 
-            videoconvert ! videorate ! videoscale ! {video_caps} ! 
+            queue !
 
-            identity name=videosrc !
-            
-            {server_custom_pipe} {virt_cam_angles} mainmux.
-
-            audiotestsrc ! audiorate ! 
-            {audio_caps} ! tee name=audiosrc ! queue ! mainmux.
-
-            {virt_audio_mixes}
-
-            {virt_muxes}
-
-            matroskamux name=mainmux !
-            queue max-size-time=4000000000 !
-            tcpclientsink host=127.0.0.1 port={core_port}
+            tcpserversink host=0.0.0.0 port={core_port}
 
         """.format(video_port = self.cam_config.get(self.cam_id,"video_port"), 
                 video_caps = server_caps['videocaps'],
