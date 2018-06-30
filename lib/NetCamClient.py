@@ -82,19 +82,13 @@ class NetCamClient():
 
     def get_pipeline(self):
         srcText = ''
-
         srcText = self.config.get(self.cam_id,"client_src").strip()
-
         pipelineText = "{srcText} ! queue ! matroskamux ! queue ! tcpclientsink host={host} port={port}".format(srcText=srcText, 
             host=self.host, 
             port=self.config.get(self.cam_id,"video_port"))
         
         print(pipelineText)
         pipeline = Gst.parse_launch(pipelineText)
-
-       
-
-
         return pipeline
 
 
@@ -113,4 +107,3 @@ class NetCamClient():
     def end(self):
         self.shouldExit = True
         self.mainloop.quit()
-        

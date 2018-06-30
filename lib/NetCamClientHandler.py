@@ -53,52 +53,6 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
         print ("Telling {client}: {message}".format(client=self.client_address[0], message=message))
         self.request.sendall(message)
 
-    def get_virtual_camera_angles(self):
-        global config
-        if not self.cam_config.get(self.cam_id,"virtual_camera_angles").strip():
-            return "", "", ""
-
-        virt_camera_angle_string = """
-            tee name=videotee !"""
-        virt_audio_string = ""
-        virt_muxes = ""
-        angle_count = 0
-
-        for virt_cam_angle in self.cam_config.get(self.cam_id,"virtual_camera_angles").split(','):
-            if angle_count > 0:
-                virt_camera_angle_string += """
-                
-                videotee. ! queue ! """
-            virt_camera_angle_string += config.get(virt_cam_angle,"server_custom_pipe").strip() 
-            virt_camera_angle_string +=  """
-                videoconvert ! videorate ! videoscale ! {video_caps} ! mux-{virt_cam_angle}.
-                """.format( core_port=config.get(virt_cam_angle,"core_port").strip(),
-                video_caps="{video_caps}",
-                virt_cam_angle=virt_cam_angle
-                )
-            
-            
-            virt_muxes +=  """
-            matroskamux name=mux-{virt_cam_angle} ! 
-                queue max-size-time=4000000000 !
-                tcpclientsink host=127.0.0.1 port={core_port}
-                
-                """.format(core_port=config.get(virt_cam_angle,"core_port").strip(),
-                virt_cam_angle=virt_cam_angle)
-
-            virt_audio_string += """
-                audiosrc. ! queue ! mux-{virt_cam_angle}.
-                
-            """.format(virt_cam_angle=virt_cam_angle)
-            angle_count += 1
-
-            
-        virt_camera_angle_string += """
-        
-            videotee. ! queue ! """
-
-        return virt_camera_angle_string, virt_audio_string, virt_muxes
-
     def setup_core_listener(self):
         NS_TO_MS = 1000000
         offset = 0 
