@@ -2,7 +2,6 @@ from uuid import getnode
 import socket
 from gi.repository import Gst, GObject
 import configparser
-from lib.Util import Util
 from lib.GSTInstance import GSTInstance
 import time
 
@@ -105,10 +104,8 @@ class NetCamClient():
         self.mainloop.quit()
 
     def start_video_stream(self):
-        server_caps = Util.get_server_config(self.host)
-        core_clock = Util.get_core_clock(self.host)
         pipeline = self.get_pipeline()
-        self.coreStreamer = GSTInstance(pipeline, core_clock)
+        self.coreStreamer = GSTInstance(pipeline)
         self.coreStreamer.pipeline.bus.add_signal_watch()
         self.coreStreamer.pipeline.bus.connect("message::eos",self.on_eos)
         self.coreStreamer.pipeline.bus.connect("message::error",self.on_eos)

@@ -2,7 +2,6 @@ import socketserver
 import configparser
 import logging
 from gi.repository import Gst
-from lib.Util import Util
 from lib.GSTInstance import GSTInstance
 import io
 
@@ -103,10 +102,6 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
     def setup_core_listener(self):
         NS_TO_MS = 1000000
         offset = 0 
-        server_caps = Util.get_server_config('127.0.0.1')
-        virt_cam_angles, virt_audio_mixes, virt_muxes = self.get_virtual_camera_angles()
-        virt_cam_angles = virt_cam_angles.format(video_caps = server_caps['videocaps'])
-
         pipelineText = """
             tcpserversrc host=0.0.0.0 port={video_port} ! matroskademux name=d ! {decode} !
 
@@ -115,13 +110,7 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
             tcpserversink host=0.0.0.0 port={core_port}
 
         """.format(video_port = self.cam_config.get(self.cam_id,"video_port"), 
-                video_caps = server_caps['videocaps'],
-                audio_caps = server_caps['audiocaps'],
                 core_port = self.cam_config.get(self.cam_id,"core_port"),
-                server_custom_pipe = self.cam_config.get(self.cam_id,"server_custom_pipe").strip(),
-                virt_cam_angles = virt_cam_angles,
-                virt_audio_mixes = virt_audio_mixes,
-                virt_muxes = virt_muxes,
                 decode=self.cam_config.get(self.cam_id,"decode")
                 )
 
@@ -134,8 +123,8 @@ class NetCamClientHandler(socketserver.BaseRequestHandler):
             print("Using offset: {offset}".format(offset=offset))
             pipeline.get_by_name("videosrc").get_static_pad("src").set_offset(offset)
 
-        core_clock = Util.get_core_clock("127.0.0.1")
-        self.coreStreamer = GSTInstance(pipeline,core_clock)
+       
+        self.coreStreamer = GSTInstance(pipeline)
         self.coreStreamer.pipeline.bus.add_signal_watch()
         self.coreStreamer.pipeline.bus.connect("message::eos",self.on_eos)
         self.coreStreamer.pipeline.bus.connect("message::error",self.on_eos)
