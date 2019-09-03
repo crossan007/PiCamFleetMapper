@@ -27,15 +27,18 @@ import argparse
 
 from threading import Thread
 import gi
+import json
 gi.require_version('Gst', '1.0')
 gi.require_version('GstNet', '1.0')
 from gi.repository import Gst, GstNet, GObject
-import configparser
 
 from lib.NetCamClient import NetCamClient
 from lib.NetCamClientHandler import NetCamClientHandler
 from lib.NetCamMasterServer import NetCamMasterServer
 from lib.NetCamMasterAdvertisementService import NetCamMasterAdvertisementService
+
+import os
+
 
 def get_args():
     parser = argparse.ArgumentParser(
@@ -62,7 +65,6 @@ def get_args():
 
     return args
 
-args = 0 
 config = 0
 mainloop = 0
 t = 0 
@@ -72,9 +74,9 @@ camera = 0
 shouldExit = False
 
 def exit_master():
-    global args, mainloop, t, master, myserver, camera, shouldExit
+    global config, mainloop, t, master, myserver, camera, shouldExit
     print("exit_master invoked")
-    if args.master:
+    if config['applicationMode'] == "master":
         print("Cleaning Up master")
         myserver.shutdown()
         myserver.server_close()
@@ -82,7 +84,7 @@ def exit_master():
         print("Exiting")
 
 
-    if args.camera:
+    if config['applicationMode'] == "camera":
         print("Cleaning Up client")
         camClient.end()
         shouldExit = True
@@ -93,18 +95,24 @@ def exit_master():
 
 
 def main():
-    global args, mainloop, t, master, myserver, camClient, shouldExit
+    global args, config, mainloop, t, master, myserver, camClient, shouldExit
+    
     Gst.init([])
     if args.master:
-        master = NetCamMasterAdvertisementService(args.ip_address,54545)
+        config_file = "config.json"
+        if os.path.isfile(config_file):
+            config = json.load(open(config_file))
+        print("Running as master")
+        master = NetCamMasterAdvertisementService(config['listenIP'],config['advertisePort'])
         master.daemon = True
         master.start()
-        myserver = NetCamMasterServer((args.ip_address,5455),NetCamClientHandler)
+        myserver = NetCamMasterServer((config['listenIP'],config['listenPort']),NetCamClientHandler, config['sources'])
         t =Thread(target=myserver.serve_forever)
         t.daemon = True  # don't allow this thread to capture the keyboard interrupt
         t.start()
 
     if args.camera:
+        print("Running as camera")
         camClient = NetCamClient()
         t = Thread(target=camClient.run)
         t.daemon = True

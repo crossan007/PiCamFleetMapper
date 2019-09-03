@@ -1,0 +1,72 @@
+{
+    "applicationMode":"master",
+    "listenIP":"0.0.0.0",
+    "listenPort":5455,
+    "advertisePort": 54545,
+    "sources": {
+        "b8:27:eb:25:9d:f8": {
+            "name": "Main",
+            "core_port": " 10002",
+            "hasAudio": " false",
+            "video_port": " 20000",
+            "offset": " 0",
+            "client_src": "v4l2src extra-controls='c,gain=100,exposure_auto=1,focus_auto=0,focus_absolute=0,exposure_auto_priority=0,exposure_absolute=300,sharpness=250,white_balance_temperature_auto=false,white_balance_temperature=4800' do-timestamp=true ! image/jpeg,width=1280,height=720,framerate=30/1",
+            "server_custom_pipe": " videoflip method=rotate-180 !",
+            "decode": "decodebin",
+            "virtual_camera_angles": [
+                {
+                    "name": "stage",
+                    "core_port": " 10003",
+                    "server_custom_pipe": " videocrop top=0 bottom=220 left=152 right=233 !"
+                },
+                {
+                    "name": "stage-center",
+                    "server_custom_pipe": "videocrop top=250 bottom=550 left=712 right=712 !",
+                    "core_port": " 10004"
+                },
+                {
+                    "name": "stage-right",
+                    "core_port": " 10005",
+                    "server_custom_pipe": " videocrop top=200 bottom=500 left=100 right=1145 !"
+                },
+                {
+                    "name": "stage-left",
+                    "core_port": " 10006",
+                    "server_custom_pipe": " videocrop top=250 bottom=350 left= 1067 right =0 !"
+                }
+            ]
+        },
+        "b8:27:eb:4c:0a:29": {
+            "name": " PiZero",
+            "core_port": " 10005",
+            "video_port": " 20001",
+            "offset": " -1900",
+            "client_src": " rpicamsrc name=videosrc keyframe-interval=10 exposure-mode=2 metering-mode=0 awb_mode=6 bitrate=0 quantisation-parameter=22 do-timestamp=true exposure-compensation=8 ! h264parse ! video/x-h264,framerate=30/1,width=1280,height=720 ",
+            "server_custom_pipe": " ",
+            "virtual_camera_angles": [],
+            "decode": "decodebin"
+        },
+        "b8:27:eb:ee:63:f2": {
+            "name": " PiThreeMobile-wifi",
+            "hasAudio": " true",
+            "core_port": " 10004",
+            "video_port": " 20002",
+            "offset": " -1900",
+            "client_src": " rpicamsrc name=videosrc keyframe-interval=10 exposure-mode=2 metering-mode=0 awb_mode=6 bitrate=0 quantisation-parameter=22 do-timestamp=true exposure-compensation=8 ! h264parse ! video/x-h264,framerate=30/1,width=1280,height=720 ! mux. alsasrc name=audiosrc device=hw:CARD=QU32,DEV=0 ! audio/x-raw,channels=32,layout=interleaved,rate=48000 ! deinterleave name=dint interleave name=int dint.src_0 ! queue ! audioconvert  ! int.sink_0 dint.src_1 ! queue ! audioconvert  ! int.sink_1 i. ! audio/x-raw,format=S16LE,channels=2,layout=interleaved,rate=48000",
+            "server_custom_pipe": " videoflip method=rotate-180 !",
+            "virtual_camera_angles": [],
+            "decode": "decodebin"
+        },
+        "00:1e:c9:4a:d7:fe": {
+            "name": " Slides",
+            "hasAudio": " false",
+            "core_port": " 10001",
+            "video_port": " 20003",
+            "offset": " 0",
+            "client_src": " ximagesrc name=videosrc use-damage=false !  videocrop left=1280 !  jpegenc ! image/jpeg,framerate=5/1",
+            "server_custom_pipe": " ",
+            "virtual_camera_angles": [],
+            "decode": "decodebin"
+        }
+    }
+}

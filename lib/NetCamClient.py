@@ -5,6 +5,8 @@ import configparser
 from lib.Util import Util
 from lib.GSTInstance import GSTInstance
 import time
+import os
+import json
 
 class NetCamClient():
     host = 0
@@ -16,7 +18,8 @@ class NetCamClient():
     mainloop = 0
 
     def __init__(self):
-        self.cam_id = self.get_self_id()
+
+        self.configure()
         self.mainloop =  GObject.MainLoop()
 
     def wait_for_core(self):
@@ -40,9 +43,7 @@ class NetCamClient():
         mesbytes = bytes(message,'UTF-8')
         len_sent = s.send(mesbytes)
         response = s.recv(2048).decode('UTF-8')
-        print(response)
-        self.config = configparser.ConfigParser()
-        self.config.read_string(response)
+        self.config = json.loads(response)
         s.close()
 
     def run(self):
@@ -55,46 +56,41 @@ class NetCamClient():
                 pass
             print("Restarting NetCamClient")
         
-    def get_self_id(self):
+    def configure(self):
         """
-            returns the ID of this camera
-            after first execution, the ID should persist to a file
+            
         """
-        configfilepath="/etc/camera.ini"
-
-        config = configparser.ConfigParser()
-        config.read(configfilepath)
-        camid = ""
-        if config.has_section("camera"):
-            camid = config.get("camera","id")
-            print("Found CamID in camera.ini: " + camid)
+        config_file="/etc/camera.json"
+        if os.path.isfile(config_file):
+            self.config = json.load(open(config_file))
+            if self.config['camera']['id']:
+                print("Found CamID in camera.ini: " + self.config['camera']['id'])
         else:
-            config.add_section("camera")
+            self.config = {}
+            self.config['camera'] = {}
+            self.config['camera']['id'] = ""
 
-        if (camid == ""):
+        if (self.config['camera']['id'] == ""):
             h = iter(hex(getnode())[2:].zfill(12))
-            camid = ":".join(i + next(h) for i in h)
-            config.set("camera","id",camid)
-            with open(configfilepath, 'w') as configfile:
-                config.write(configfile)
-            print("Generated CamID and wrote to camera.ini: " + camid)
-        
-        return camid
+            self.config["camera"]["id"] = ":".join(i + next(h) for i in h)
+            with open(config_file, 'w') as out_config_file:
+                json.dump(self.config,out_config_file)
+            print("Generated CamID and wrote to camera.ini: " +  self.config["camera"]["id"])
+        return
 
     def get_pipeline(self):
-        srcText = ''
 
-        srcText = self.config.get(self.cam_id,"client_src").strip()
+        print("Calculating pipeline")
+        srcText = ''
+        srcText = self.config["client_src"]
 
         pipelineText = "{srcText} ! queue ! matroskamux ! queue ! tcpclientsink host={host} port={port}".format(srcText=srcText, 
             host=self.host, 
-            port=self.config.get(self.cam_id,"video_port"))
-        
+            port=self.config["video_port"])
+        print("---------------- Pipeline ---------------")
         print(pipelineText)
+        print("---------------- Pipeline ---------------")
         pipeline = Gst.parse_launch(pipelineText)
-
-       
-
 
         return pipeline
 
